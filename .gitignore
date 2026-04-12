@@ -1,0 +1,13 @@
+node_modules/
+package-lock.json
+
+# Nested app artifacts
+Cereal Directory/.next/
+Cereal Directory/node_modules/
+
+# Common local env and logs
+.env*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
