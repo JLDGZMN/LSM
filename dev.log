@@ -1,0 +1,17 @@
+
+> my-new-app@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.9:3000
+- Environments: .env
+✓ Ready in 405ms
+Creating turbopack project {
+  dir: 'C:\\Users\\A\\Desktop\\Library System Management\\Cereal Directory',
+  testMode: true
+}
+
+ GET / 200 in 687ms (next.js: 457ms, application-code: 230ms)
+ GET /api/auth/get-session 200 in 896ms (next.js: 872ms, application-code: 24ms)
+ GET / 200 in 32ms (next.js: 3ms, application-code: 30ms)

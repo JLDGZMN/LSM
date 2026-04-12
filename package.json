@@ -1,8 +1,18 @@
 {
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix \"Cereal Directory\" run dev",
+    "build": "npm --prefix \"Cereal Directory\" run build",
+    "start": "npm --prefix \"Cereal Directory\" run start",
+    "lint": "npm --prefix \"Cereal Directory\" run lint",
+    "auth:migrate": "npm --prefix \"Cereal Directory\" run auth:migrate",
+    "db:migrate": "npm --prefix \"Cereal Directory\" run db:migrate"
+  },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
     "auth": "^1.6.2",
     "better": "^0.1.0",
+    "better-auth": "^1.6.2",
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {

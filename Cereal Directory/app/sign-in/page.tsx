@@ -1,9 +1,10 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import { auth } from "@/lib/auth";
 
-export default async function Home() {
+export default async function SignInPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -12,5 +13,5 @@ export default async function Home() {
     redirect("/dashboard");
   }
 
-  redirect("/sign-in");
+  return <AuthPageShell mode="signin" />;
 }
