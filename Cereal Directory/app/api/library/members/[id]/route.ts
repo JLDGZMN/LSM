@@ -6,13 +6,9 @@ import { deleteMember, listMembers, updateMember, type MemberInput } from "@/lib
 function parseMemberPayload(body: Record<string, unknown>): MemberInput {
   return {
     fullName: String(body.fullName ?? ""),
-    email: String(body.email ?? ""),
-    phone: body.phone == null ? null : String(body.phone),
-    address: body.address == null ? null : String(body.address),
-    membershipStatus:
-      body.membershipStatus === "inactive" || body.membershipStatus === "suspended"
-        ? body.membershipStatus
-        : "active",
+    studentId: String(body.studentId ?? ""),
+    course: String(body.course ?? ""),
+    section: String(body.section ?? ""),
   };
 }
 

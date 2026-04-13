@@ -61,8 +61,8 @@ export function DataTable<TData>({
                           header.column.columnDef.header,
                           header.getContext(),
                         )}
-                        {header.column.getIsSorted() === "asc" ? "↑" : null}
-                        {header.column.getIsSorted() === "desc" ? "↓" : null}
+                        {header.column.getIsSorted() === "asc" ? "^" : null}
+                        {header.column.getIsSorted() === "desc" ? "v" : null}
                       </button>
                     )}
                   </th>

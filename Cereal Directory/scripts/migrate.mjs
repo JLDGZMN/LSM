@@ -53,6 +53,54 @@ const pool = createPool({
 const runAuthMigration = !process.argv.includes("--library-only");
 const runLibraryMigration = !process.argv.includes("--auth-only");
 
+async function syncMemberColumns() {
+  const [memberStudentIdColumns] = await pool.query(`
+    SELECT COLUMN_NAME
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'members'
+      AND COLUMN_NAME = 'student_id'
+  `);
+
+  if (memberStudentIdColumns.length === 0) {
+    await pool.query(`
+      ALTER TABLE members
+      ADD COLUMN student_id VARCHAR(80) NULL UNIQUE AFTER full_name,
+      ADD COLUMN course VARCHAR(160) NULL AFTER student_id,
+      ADD COLUMN section VARCHAR(80) NULL AFTER course
+    `);
+  }
+
+  await pool.query(`
+    ALTER TABLE members
+    MODIFY COLUMN email VARCHAR(255) NULL,
+    MODIFY COLUMN membership_status ENUM('active','inactive','suspended') NULL DEFAULT 'active'
+  `);
+}
+
+async function syncDefaultCategories() {
+  const defaultCategories = [
+    ["Computer Science", "Programming, systems, and software development books."],
+    ["Education", "Teaching, curriculum, and classroom management resources."],
+    ["Engineering", "Core engineering theory and applied technical references."],
+    ["General Reference", "Dictionaries, encyclopedias, and reference materials."],
+    ["Literature", "Fiction, poetry, drama, and literary analysis titles."],
+    ["Mathematics", "Mathematics, statistics, and quantitative reasoning resources."],
+    ["Science", "Biology, chemistry, physics, and general science books."],
+  ];
+
+  for (const [name, description] of defaultCategories) {
+    await pool.query(
+      `
+        INSERT INTO categories (name, description)
+        VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE description = VALUES(description)
+      `,
+      [name, description],
+    );
+  }
+}
+
 if (runAuthMigration) {
   console.log("Running Better Auth migration...");
   await pool.query(`
@@ -146,6 +194,8 @@ if (existing.length === 0) {
     )
   `);
 
+  await syncDefaultCategories();
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS books (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -170,15 +220,20 @@ if (existing.length === 0) {
       id INT AUTO_INCREMENT PRIMARY KEY,
       auth_user_id VARCHAR(255) NULL UNIQUE,
       full_name VARCHAR(160) NOT NULL,
-      email VARCHAR(255) NOT NULL UNIQUE,
+      student_id VARCHAR(80) NULL UNIQUE,
+      course VARCHAR(160) NULL,
+      section VARCHAR(80) NULL,
+      email VARCHAR(255) NULL UNIQUE,
       phone VARCHAR(50) NULL,
       address TEXT NULL,
-      membership_status ENUM('active','inactive','suspended') NOT NULL DEFAULT 'active',
+      membership_status ENUM('active','inactive','suspended') NULL DEFAULT 'active',
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       CONSTRAINT fk_members_auth_user FOREIGN KEY (auth_user_id) REFERENCES user(id) ON DELETE SET NULL
     )
   `);
+
+  await syncMemberColumns();
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS borrow_transactions (
@@ -208,7 +263,9 @@ if (existing.length === 0) {
 
   console.log("Library tables created successfully.");
 } else {
-  console.log("Library tables already exist. Migration skipped.");
+  await syncMemberColumns();
+  await syncDefaultCategories();
+  console.log("Library tables already exist. Member schema synced.");
 }
 }
 await pool.end();

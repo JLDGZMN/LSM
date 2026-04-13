@@ -13,8 +13,6 @@ export type CategoryOption = {
 
 export type BookStatus = "available" | "low_stock" | "unavailable";
 
-export type MemberStatus = "active" | "inactive" | "suspended";
-
 export type BorrowStatus = "borrowed" | "returned" | "overdue" | "lost";
 
 export type BookRow = {
@@ -37,10 +35,9 @@ export type MemberRow = {
   id: number;
   authUserId: string | null;
   fullName: string;
-  email: string;
-  phone: string | null;
-  address: string | null;
-  membershipStatus: MemberStatus;
+  studentId: string;
+  course: string;
+  section: string;
   createdAt: string;
 };
 
@@ -90,10 +87,9 @@ export type BookInput = {
 
 export type MemberInput = {
   fullName: string;
-  email: string;
-  phone: string | null;
-  address: string | null;
-  membershipStatus: MemberStatus;
+  studentId: string;
+  course: string;
+  section: string;
 };
 
 export type BorrowTransactionInput = {
@@ -137,10 +133,9 @@ type MemberResultRow = RowDataPacket & {
   id: number;
   authUserId: string | null;
   fullName: string;
-  email: string;
-  phone: string | null;
-  address: string | null;
-  membershipStatus: MemberStatus;
+  studentId: string;
+  course: string;
+  section: string;
   createdAt: Date | string;
 };
 
@@ -187,6 +182,26 @@ function normalizeRequiredText(value: string, field: string) {
   return trimmed;
 }
 
+function normalizeStudentId(value: string) {
+  const normalized = normalizeRequiredText(value, "Student ID");
+
+  if (!/^\d{9}$/.test(normalized)) {
+    throw new Error("Student ID must contain exactly 9 digits.");
+  }
+
+  return normalized;
+}
+
+function normalizeIsbn(value: string | null | undefined) {
+  const normalized = normalizeRequiredText(value ?? "", "ISBN");
+
+  if (!/^\d{13}$/.test(normalized)) {
+    throw new Error("ISBN must contain exactly 13 digits.");
+  }
+
+  return normalized;
+}
+
 function normalizeNonNegativeInteger(value: number, field: string) {
   if (!Number.isInteger(value) || value < 0) {
     throw new Error(`${field} must be a non-negative whole number.`);
@@ -201,6 +216,88 @@ function normalizePositiveInteger(value: number, field: string) {
   }
 
   return value;
+}
+
+function normalizeRecordId(value: number, field: string) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${field} is required.`);
+  }
+
+  return value;
+}
+
+function isPastDue(value: Date | string) {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return false;
+  }
+
+  return date.getTime() < Date.now();
+}
+
+function addSchoolDays(startDate: Date, schoolDays: number) {
+  const result = new Date(startDate);
+  let countedDays = 0;
+
+  while (countedDays < schoolDays) {
+    result.setDate(result.getDate() + 1);
+
+    const dayOfWeek = result.getDay();
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      countedDays += 1;
+    }
+  }
+
+  return result;
+}
+
+function computeDueAtFromBorrowedAt(borrowedAt: Date) {
+  return addSchoolDays(borrowedAt, 5);
+}
+
+function deriveBorrowStatus(
+  currentStatus: BorrowStatus,
+  dueAt: Date,
+  returnedAt: Date | null,
+) {
+  if (currentStatus === "lost") {
+    return "lost";
+  }
+
+  if (returnedAt) {
+    return "returned";
+  }
+
+  return isPastDue(dueAt) ? "overdue" : "borrowed";
+}
+
+function clampAvailableCopies(availableCopies: number, totalCopies: number) {
+  return Math.max(0, Math.min(availableCopies, totalCopies));
+}
+
+function validateBorrowTimeline({
+  borrowedAt,
+  dueAt,
+  returnedAt,
+  status,
+}: {
+  borrowedAt: Date;
+  dueAt: Date;
+  returnedAt: Date | null;
+  status: BorrowStatus;
+}) {
+  if (dueAt.getTime() < borrowedAt.getTime()) {
+    throw new Error("Due date must be after the borrowed date.");
+  }
+
+  if (returnedAt && returnedAt.getTime() < borrowedAt.getTime()) {
+    throw new Error("Returned date cannot be earlier than the borrowed date.");
+  }
+
+  if (status === "lost" && returnedAt) {
+    throw new Error("Lost records cannot include a returned date.");
+  }
 }
 
 function getBookStatus(totalCopies: number, availableCopies: number) {
@@ -242,9 +339,15 @@ async function updateBookAvailability(
   availableCopies: number,
   totalCopies: number,
 ) {
+  const nextAvailableCopies = clampAvailableCopies(availableCopies, totalCopies);
+
   await connection.query(
     "UPDATE books SET available_copies = ?, status = ? WHERE id = ?",
-    [availableCopies, getBookStatus(totalCopies, availableCopies), bookId],
+    [
+      nextAvailableCopies,
+      getBookStatus(totalCopies, nextAvailableCopies),
+      bookId,
+    ],
   );
 }
 
@@ -256,10 +359,19 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     "SELECT COUNT(*) AS total FROM members",
   );
   const [[borrowed]] = await promisePool.query<CountRow[]>(
-    "SELECT COUNT(*) AS total FROM borrow_transactions WHERE status IN ('borrowed', 'overdue')",
+    `
+      SELECT COUNT(*) AS total
+      FROM borrow_transactions
+      WHERE returned_at IS NULL
+        AND status <> 'lost'
+    `,
   );
   const [[returned]] = await promisePool.query<CountRow[]>(
-    "SELECT COUNT(*) AS total FROM borrow_transactions WHERE status = 'returned'",
+    `
+      SELECT COUNT(*) AS total
+      FROM borrow_transactions
+      WHERE returned_at IS NOT NULL
+    `,
   );
 
   return {
@@ -325,10 +437,9 @@ export async function listMembers(): Promise<MemberRow[]> {
       id,
       auth_user_id AS authUserId,
       full_name AS fullName,
-      email,
-      phone,
-      address,
-      membership_status AS membershipStatus,
+      student_id AS studentId,
+      course,
+      section,
       created_at AS createdAt
     FROM members
     ORDER BY created_at DESC, id DESC
@@ -338,10 +449,9 @@ export async function listMembers(): Promise<MemberRow[]> {
     id: row.id,
     authUserId: row.authUserId,
     fullName: row.fullName,
-    email: row.email,
-    phone: row.phone,
-    address: row.address,
-    membershipStatus: row.membershipStatus,
+    studentId: row.studentId,
+    course: row.course,
+    section: row.section,
     createdAt: toIso(row.createdAt) ?? new Date(0).toISOString(),
   }));
 }
@@ -377,7 +487,15 @@ export async function listBorrowTransactions(): Promise<BorrowTransactionRow[]> 
     borrowedAt: toIso(row.borrowedAt) ?? new Date(0).toISOString(),
     dueAt: toIso(row.dueAt) ?? new Date(0).toISOString(),
     returnedAt: toIso(row.returnedAt),
-    status: row.status,
+    status: deriveBorrowStatus(
+      row.status,
+      row.dueAt instanceof Date ? row.dueAt : new Date(row.dueAt),
+      row.returnedAt
+        ? row.returnedAt instanceof Date
+          ? row.returnedAt
+          : new Date(row.returnedAt)
+        : null,
+    ),
     notes: row.notes,
     bookTitle: row.bookTitle,
     memberName: row.memberName,
@@ -407,6 +525,7 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
 export async function createBook(input: BookInput) {
   const normalizedTitle = normalizeRequiredText(input.title, "Title");
   const normalizedAuthor = normalizeRequiredText(input.author, "Author");
+  const normalizedIsbn = normalizeIsbn(input.isbn);
   const totalCopies = normalizePositiveInteger(input.totalCopies, "Total copies");
   const availableCopies = normalizeNonNegativeInteger(
     input.availableCopies,
@@ -437,7 +556,7 @@ export async function createBook(input: BookInput) {
     [
       input.categoryId,
       normalizedTitle,
-      normalizeText(input.isbn),
+      normalizedIsbn,
       normalizedAuthor,
       normalizeText(input.publisher),
       input.publishedYear,
@@ -454,6 +573,7 @@ export async function createBook(input: BookInput) {
 export async function updateBook(id: number, input: BookInput) {
   const normalizedTitle = normalizeRequiredText(input.title, "Title");
   const normalizedAuthor = normalizeRequiredText(input.author, "Author");
+  const normalizedIsbn = normalizeIsbn(input.isbn);
   const totalCopies = normalizePositiveInteger(input.totalCopies, "Total copies");
   const availableCopies = normalizeNonNegativeInteger(
     input.availableCopies,
@@ -462,6 +582,31 @@ export async function updateBook(id: number, input: BookInput) {
 
   if (availableCopies > totalCopies) {
     throw new Error("Available copies cannot be greater than total copies.");
+  }
+
+  const [[activeBorrowRow]] = await promisePool.query<RowDataPacket[]>(
+    `
+      SELECT COUNT(*) AS total
+      FROM borrow_transactions
+      WHERE book_id = ?
+        AND status IN ('borrowed', 'overdue', 'lost')
+    `,
+    [id],
+  );
+
+  const activeBorrowCount = Number(activeBorrowRow?.total ?? 0);
+  const minimumUnavailableCopies = activeBorrowCount;
+
+  if (totalCopies < minimumUnavailableCopies) {
+    throw new Error(
+      `Total copies cannot be less than ${minimumUnavailableCopies} while there are active or lost records for this book.`,
+    );
+  }
+
+  if (availableCopies > totalCopies - minimumUnavailableCopies) {
+    throw new Error(
+      `Available copies cannot exceed ${totalCopies - minimumUnavailableCopies} while copies are still borrowed or marked lost.`,
+    );
   }
 
   const status = getBookStatus(totalCopies, availableCopies);
@@ -485,7 +630,7 @@ export async function updateBook(id: number, input: BookInput) {
     [
       input.categoryId,
       normalizedTitle,
-      normalizeText(input.isbn),
+      normalizedIsbn,
       normalizedAuthor,
       normalizeText(input.publisher),
       input.publishedYear,
@@ -504,29 +649,25 @@ export async function deleteBook(id: number) {
 
 export async function createMember(input: MemberInput) {
   const fullName = normalizeRequiredText(input.fullName, "Full name");
-  const email = normalizeRequiredText(input.email, "Email");
-
-  if (!/\S+@\S+\.\S+/.test(email)) {
-    throw new Error("Enter a valid email address.");
-  }
+  const studentId = normalizeStudentId(input.studentId);
+  const course = normalizeRequiredText(input.course, "Course");
+  const section = normalizeRequiredText(input.section, "Section");
 
   const [result] = await promisePool.execute<ResultSetHeader>(
     `
       INSERT INTO members (
         full_name,
-        email,
-        phone,
-        address,
-        membership_status
+        student_id,
+        course,
+        section
       )
-      VALUES (?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?)
     `,
     [
       fullName,
-      email,
-      normalizeText(input.phone),
-      normalizeText(input.address),
-      input.membershipStatus,
+      studentId,
+      course,
+      section,
     ],
   );
 
@@ -535,29 +676,25 @@ export async function createMember(input: MemberInput) {
 
 export async function updateMember(id: number, input: MemberInput) {
   const fullName = normalizeRequiredText(input.fullName, "Full name");
-  const email = normalizeRequiredText(input.email, "Email");
-
-  if (!/\S+@\S+\.\S+/.test(email)) {
-    throw new Error("Enter a valid email address.");
-  }
+  const studentId = normalizeStudentId(input.studentId);
+  const course = normalizeRequiredText(input.course, "Course");
+  const section = normalizeRequiredText(input.section, "Section");
 
   await promisePool.execute(
     `
       UPDATE members
       SET
         full_name = ?,
-        email = ?,
-        phone = ?,
-        address = ?,
-        membership_status = ?
+        student_id = ?,
+        course = ?,
+        section = ?
       WHERE id = ?
     `,
     [
       fullName,
-      email,
-      normalizeText(input.phone),
-      normalizeText(input.address),
-      input.membershipStatus,
+      studentId,
+      course,
+      section,
       id,
     ],
   );
@@ -568,11 +705,8 @@ export async function deleteMember(id: number) {
 }
 
 export async function createBorrowTransaction(input: BorrowTransactionInput) {
-  const dueAt = new Date(input.dueAt);
-
-  if (Number.isNaN(dueAt.getTime())) {
-    throw new Error("Due date is required.");
-  }
+  const bookId = normalizeRecordId(input.bookId, "Book");
+  const memberId = normalizeRecordId(input.memberId, "Member");
 
   const borrowedAt = input.borrowedAt ? new Date(input.borrowedAt) : new Date();
 
@@ -580,11 +714,28 @@ export async function createBorrowTransaction(input: BorrowTransactionInput) {
     throw new Error("Borrowed date is invalid.");
   }
 
-  const returnedAt = input.returnedAt ? new Date(input.returnedAt) : null;
+  const dueAt = computeDueAtFromBorrowedAt(borrowedAt);
+
+  const requestedStatus = input.status;
+  const returnedAt =
+    input.returnedAt
+      ? new Date(input.returnedAt)
+      : requestedStatus === "returned"
+        ? new Date()
+        : null;
 
   if (returnedAt && Number.isNaN(returnedAt.getTime())) {
     throw new Error("Returned date is invalid.");
   }
+
+  validateBorrowTimeline({
+    borrowedAt,
+    dueAt,
+    returnedAt,
+    status: requestedStatus,
+  });
+
+  const resolvedStatus = deriveBorrowStatus(requestedStatus, dueAt, returnedAt);
 
   const connection = await promisePool.getConnection();
 
@@ -593,10 +744,10 @@ export async function createBorrowTransaction(input: BorrowTransactionInput) {
 
     const { availableCopies, totalCopies } = await getBookAvailability(
       connection,
-      input.bookId,
+      bookId,
     );
 
-    if (input.status !== "returned" && availableCopies <= 0) {
+    if (resolvedStatus !== "returned" && availableCopies <= 0) {
       throw new Error("This book has no available copies left to borrow.");
     }
 
@@ -616,22 +767,22 @@ export async function createBorrowTransaction(input: BorrowTransactionInput) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
-        input.bookId,
-        input.memberId,
+        bookId,
+        memberId,
         input.issuedByUserId,
-        input.returnedToUserId,
+        resolvedStatus === "returned" ? input.returnedToUserId : null,
         borrowedAt,
         dueAt,
         returnedAt,
-        input.status,
+        resolvedStatus,
         normalizeText(input.notes),
       ],
     );
 
-    if (input.status !== "returned") {
+    if (resolvedStatus !== "returned") {
       await updateBookAvailability(
         connection,
-        input.bookId,
+        bookId,
         availableCopies - 1,
         totalCopies,
       );
@@ -652,11 +803,8 @@ export async function updateBorrowTransaction(
   id: number,
   input: BorrowTransactionInput,
 ) {
-  const dueAt = new Date(input.dueAt);
-
-  if (Number.isNaN(dueAt.getTime())) {
-    throw new Error("Due date is required.");
-  }
+  const bookId = normalizeRecordId(input.bookId, "Book");
+  const memberId = normalizeRecordId(input.memberId, "Member");
 
   const borrowedAt = input.borrowedAt ? new Date(input.borrowedAt) : new Date();
 
@@ -664,11 +812,28 @@ export async function updateBorrowTransaction(
     throw new Error("Borrowed date is invalid.");
   }
 
-  const returnedAt = input.returnedAt ? new Date(input.returnedAt) : null;
+  const dueAt = computeDueAtFromBorrowedAt(borrowedAt);
+
+  const requestedStatus = input.status;
+  const returnedAt =
+    input.returnedAt
+      ? new Date(input.returnedAt)
+      : requestedStatus === "returned"
+        ? new Date()
+        : null;
 
   if (returnedAt && Number.isNaN(returnedAt.getTime())) {
     throw new Error("Returned date is invalid.");
   }
+
+  validateBorrowTimeline({
+    borrowedAt,
+    dueAt,
+    returnedAt,
+    status: requestedStatus,
+  });
+
+  const resolvedStatus = deriveBorrowStatus(requestedStatus, dueAt, returnedAt);
 
   const connection = await promisePool.getConnection();
 
@@ -695,11 +860,11 @@ export async function updateBorrowTransaction(
 
     const previousBookId = Number(existing.bookId);
     const previousStatus = existing.status as BorrowStatus;
-    const currentBook = await getBookAvailability(connection, input.bookId);
+    const currentBook = await getBookAvailability(connection, bookId);
 
     if (
-      input.status !== "returned" &&
-      (input.bookId !== previousBookId ||
+      resolvedStatus !== "returned" &&
+      (bookId !== previousBookId ||
         previousStatus === "returned" ||
         previousStatus === "lost") &&
       currentBook.availableCopies <= 0
@@ -723,39 +888,39 @@ export async function updateBorrowTransaction(
         WHERE id = ?
       `,
       [
-        input.bookId,
-        input.memberId,
+        bookId,
+        memberId,
         input.issuedByUserId,
-        input.returnedToUserId,
+        resolvedStatus === "returned" ? input.returnedToUserId : null,
         borrowedAt,
         dueAt,
         returnedAt,
-        input.status,
+        resolvedStatus,
         normalizeText(input.notes),
         id,
       ],
     );
 
-    if (previousBookId === input.bookId) {
+    if (previousBookId === bookId) {
       const shouldRestore =
         previousStatus !== "returned" &&
         previousStatus !== "lost" &&
-        input.status === "returned";
+        resolvedStatus === "returned";
       const shouldConsume =
-        (previousStatus === "returned" || previousStatus === "lost") &&
-        input.status !== "returned";
+        previousStatus === "returned" &&
+        resolvedStatus !== "returned";
 
       if (shouldRestore) {
         await updateBookAvailability(
           connection,
-          input.bookId,
+          bookId,
           currentBook.availableCopies + 1,
           currentBook.totalCopies,
         );
       } else if (shouldConsume) {
         await updateBookAvailability(
           connection,
-          input.bookId,
+          bookId,
           currentBook.availableCopies - 1,
           currentBook.totalCopies,
         );
@@ -763,7 +928,7 @@ export async function updateBorrowTransaction(
     } else {
       const previousBook = await getBookAvailability(connection, previousBookId);
 
-      if (previousStatus !== "returned" && previousStatus !== "lost") {
+      if (previousStatus !== "returned") {
         await updateBookAvailability(
           connection,
           previousBookId,
@@ -772,10 +937,10 @@ export async function updateBorrowTransaction(
         );
       }
 
-      if (input.status !== "returned" && input.status !== "lost") {
+      if (resolvedStatus !== "returned") {
         await updateBookAvailability(
           connection,
-          input.bookId,
+          bookId,
           currentBook.availableCopies - 1,
           currentBook.totalCopies,
         );
@@ -810,7 +975,7 @@ export async function deleteBorrowTransaction(id: number) {
 
     await connection.execute("DELETE FROM borrow_transactions WHERE id = ?", [id]);
 
-    if (existing.status !== "returned" && existing.status !== "lost") {
+    if (existing.status !== "returned") {
       const previousBook = await getBookAvailability(connection, Number(existing.bookId));
       await updateBookAvailability(
         connection,

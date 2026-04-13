@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import Image from "next/image";
+import { ChevronDown, Eye, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
+import { toast } from "sonner";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DataTable } from "@/components/dashboard/data-table";
@@ -12,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import {
   type BookRow,
   type BorrowTransactionRow,
-  type CategoryOption,
   type DashboardStats,
   type MemberRow,
 } from "@/lib/library-data";
@@ -22,7 +23,6 @@ type TabKey = "books" | "members" | "borrowTransactions";
 
 type BookFormValues = {
   id: string;
-  categoryId: string;
   title: string;
   isbn: string;
   author: string;
@@ -36,10 +36,9 @@ type BookFormValues = {
 type MemberFormValues = {
   id: string;
   fullName: string;
-  email: string;
-  phone: string;
-  address: string;
-  membershipStatus: "active" | "inactive" | "suspended";
+  studentId: string;
+  course: string;
+  section: string;
 };
 
 type TransactionFormValues = {
@@ -60,7 +59,6 @@ type ResourceResponse<T> = {
 
 type LibraryDashboardProps = {
   initialStats: DashboardStats;
-  initialCategories: CategoryOption[];
   initialBooks: BookRow[];
   initialMembers: MemberRow[];
   initialBorrowTransactions: BorrowTransactionRow[];
@@ -74,9 +72,37 @@ const tabLabels: Record<TabKey, string> = {
   borrowTransactions: "Borrow Records",
 };
 
+const PENALTY_PER_DAY = 5;
+
+const COURSE_OPTIONS = [
+  "BS Accountancy",
+  "BS Architecture",
+  "BS Biology",
+  "BS Business Administration",
+  "BS Civil Engineering",
+  "BS Computer Science",
+  "BS Criminology",
+  "BS Education",
+  "BS Electrical Engineering",
+  "BS Entrepreneurship",
+  "BS Hospitality Management",
+  "BS Information Systems",
+  "BS Information Technology",
+  "BS Mathematics",
+  "BS Mechanical Engineering",
+  "BS Medical Technology",
+  "BS Nursing",
+  "BS Pharmacy",
+  "BS Psychology",
+  "BS Tourism Management",
+] as const;
+
+const SHELF_LOCATION_OPTIONS = ["A", "B", "C", "D", "E"].flatMap((letter) =>
+  Array.from({ length: 12 }, (_, index) => `${letter}-${index + 1}`),
+) as string[];
+
 const emptyBookForm = (): BookFormValues => ({
   id: "",
-  categoryId: "",
   title: "",
   isbn: "",
   author: "",
@@ -90,18 +116,43 @@ const emptyBookForm = (): BookFormValues => ({
 const emptyMemberForm = (): MemberFormValues => ({
   id: "",
   fullName: "",
-  email: "",
-  phone: "",
-  address: "",
-  membershipStatus: "active",
+  studentId: "",
+  course: "",
+  section: "",
 });
+
+function addSchoolDaysFromLocalDateTime(value: string, schoolDays: number) {
+  if (!value) {
+    return "";
+  }
+
+  const startDate = new Date(value);
+
+  if (Number.isNaN(startDate.getTime())) {
+    return "";
+  }
+
+  const result = new Date(startDate);
+  let countedDays = 0;
+
+  while (countedDays < schoolDays) {
+    result.setDate(result.getDate() + 1);
+
+    const dayOfWeek = result.getDay();
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      countedDays += 1;
+    }
+  }
+
+  return toDateTimeLocal(result.toISOString());
+}
 
 const emptyTransactionForm = (): TransactionFormValues => ({
   id: "",
   bookId: "",
   memberId: "",
   borrowedAt: toDateTimeLocal(new Date().toISOString()),
-  dueAt: "",
+  dueAt: addSchoolDaysFromLocalDateTime(toDateTimeLocal(new Date().toISOString()), 5),
   returnedAt: "",
   status: "borrowed",
   notes: "",
@@ -147,6 +198,39 @@ function toReadableDateTime(value: string | null) {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function getOverdueDays(dueAt: string, returnedAt?: string | null) {
+  const dueDate = new Date(dueAt);
+
+  if (Number.isNaN(dueDate.getTime())) {
+    return 0;
+  }
+
+  const comparisonDate = returnedAt ? new Date(returnedAt) : new Date();
+
+  if (Number.isNaN(comparisonDate.getTime())) {
+    return 0;
+  }
+
+  const normalizedDue = new Date(
+    dueDate.getFullYear(),
+    dueDate.getMonth(),
+    dueDate.getDate(),
+  );
+  const normalizedComparison = new Date(
+    comparisonDate.getFullYear(),
+    comparisonDate.getMonth(),
+    comparisonDate.getDate(),
+  );
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  const difference = normalizedComparison.getTime() - normalizedDue.getTime();
+
+  return difference > 0 ? Math.floor(difference / millisecondsPerDay) : 0;
+}
+
+function getPenaltyAmount(transaction: BorrowTransactionRow) {
+  return getOverdueDays(transaction.dueAt, transaction.returnedAt) * PENALTY_PER_DAY;
 }
 
 function deriveStats(
@@ -242,9 +326,77 @@ function Field({
   );
 }
 
+function OptionSelect({
+  value,
+  onChange,
+  options,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: readonly string[];
+  placeholder: string;
+}) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    function handlePointerDown(event: MouseEvent) {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen((current) => !current)}
+        className="flex h-11 w-full items-center justify-between rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm text-left"
+      >
+        <span className={cn(!value && "text-[var(--color-muted-foreground)]")}>
+          {value || placeholder}
+        </span>
+        <ChevronDown
+          className={cn(
+            "size-4 text-[var(--color-muted-foreground)] transition-transform",
+            isOpen && "rotate-180",
+          )}
+        />
+      </button>
+
+      {isOpen ? (
+        <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-[color:var(--color-border)] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
+          <div className="max-h-[220px] overflow-y-auto py-1">
+            {options.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => {
+                  onChange(option);
+                  setIsOpen(false);
+                }}
+                className={cn(
+                  "flex w-full items-center px-3 py-2 text-left text-sm transition hover:bg-[var(--color-muted)]",
+                  value === option && "bg-[var(--color-primary-soft)] text-[var(--color-primary-strong)]",
+                )}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function LibraryDashboard({
   initialStats,
-  initialCategories,
   initialBooks,
   initialMembers,
   initialBorrowTransactions,
@@ -253,7 +405,6 @@ export function LibraryDashboard({
 }: LibraryDashboardProps) {
   const [activeTab, setActiveTab] = React.useState<TabKey>("books");
   const [stats, setStats] = React.useState(initialStats);
-  const [categories] = React.useState(initialCategories);
   const [books, setBooks] = React.useState(initialBooks);
   const [members, setMembers] = React.useState(initialMembers);
   const [borrowTransactions, setBorrowTransactions] = React.useState(
@@ -268,11 +419,25 @@ export function LibraryDashboard({
   const [memberSearch, setMemberSearch] = React.useState("");
   const [transactionSearch, setTransactionSearch] = React.useState("");
   const [bookStatusFilter, setBookStatusFilter] = React.useState("all");
-  const [bookCategoryFilter, setBookCategoryFilter] = React.useState("all");
-  const [memberStatusFilter, setMemberStatusFilter] = React.useState("all");
   const [transactionStatusFilter, setTransactionStatusFilter] = React.useState("all");
-  const [message, setMessage] = React.useState("Manage your live library records below.");
+  const [selectedTransaction, setSelectedTransaction] =
+    React.useState<BorrowTransactionRow | null>(null);
   const [isPending, startTransition] = React.useTransition();
+
+  React.useEffect(() => {
+    setTransactionForm((current) => {
+      const computedDueAt = addSchoolDaysFromLocalDateTime(current.borrowedAt, 5);
+
+      if (current.dueAt === computedDueAt) {
+        return current;
+      }
+
+      return {
+        ...current,
+        dueAt: computedDueAt,
+      };
+    });
+  }, [transactionForm.borrowedAt]);
 
   function refreshStats(
     nextBooks: BookRow[],
@@ -293,7 +458,6 @@ export function LibraryDashboard({
   function beginEditBook(book: BookRow) {
     setBookForm({
       id: String(book.id),
-      categoryId: book.categoryId ? String(book.categoryId) : "",
       title: book.title,
       isbn: book.isbn ?? "",
       author: book.author,
@@ -304,20 +468,23 @@ export function LibraryDashboard({
       availableCopies: String(book.availableCopies),
     });
     setActiveTab("books");
-    setMessage(`Editing "${book.title}". Update the fields and save your changes.`);
+    toast("Editing book", {
+      description: `Update "${book.title}" and save your changes when ready.`,
+    });
   }
 
   function beginEditMember(member: MemberRow) {
     setMemberForm({
       id: String(member.id),
       fullName: member.fullName,
-      email: member.email,
-      phone: member.phone ?? "",
-      address: member.address ?? "",
-      membershipStatus: member.membershipStatus,
+      studentId: member.studentId,
+      course: member.course,
+      section: member.section,
     });
     setActiveTab("members");
-    setMessage(`Editing member "${member.fullName}".`);
+    toast("Editing member", {
+      description: `You are now editing ${member.fullName}.`,
+    });
   }
 
   function beginEditTransaction(transaction: BorrowTransactionRow) {
@@ -332,9 +499,9 @@ export function LibraryDashboard({
       notes: transaction.notes ?? "",
     });
     setActiveTab("borrowTransactions");
-    setMessage(
-      `Editing borrow record for "${transaction.bookTitle}" and ${transaction.memberName}.`,
-    );
+    toast("Editing borrow record", {
+      description: `${transaction.bookTitle} for ${transaction.memberName}.`,
+    });
   }
 
   async function handleBookSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -342,7 +509,7 @@ export function LibraryDashboard({
 
     try {
       const payload = {
-        categoryId: bookForm.categoryId,
+        categoryId: null,
         title: bookForm.title,
         isbn: bookForm.isbn,
         author: bookForm.author,
@@ -367,9 +534,11 @@ export function LibraryDashboard({
         setBookForm(emptyBookForm());
       });
 
-      setMessage(bookForm.id ? "Book updated successfully." : "Book added successfully.");
+      toast.success(bookForm.id ? "Book updated" : "Book added");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to save this book.");
+      toast.error("Unable to save book", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     }
   }
 
@@ -392,11 +561,11 @@ export function LibraryDashboard({
         setMemberForm(emptyMemberForm());
       });
 
-      setMessage(
-        memberForm.id ? "Member updated successfully." : "Member added successfully.",
-      );
+      toast.success(memberForm.id ? "Member updated" : "Member added");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to save this member.");
+      toast.error("Unable to save member", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     }
   }
 
@@ -422,15 +591,13 @@ export function LibraryDashboard({
         setTransactionForm(emptyTransactionForm());
       });
 
-      setMessage(
-        transactionForm.id
-          ? "Borrow record updated successfully."
-          : "Borrow record created successfully.",
+      toast.success(
+        transactionForm.id ? "Borrow record updated" : "Borrow record created",
       );
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Unable to save this borrow record.",
-      );
+      toast.error("Unable to save borrow record", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     }
   }
 
@@ -454,9 +621,11 @@ export function LibraryDashboard({
         setBookForm(emptyBookForm());
       }
 
-      setMessage("Book deleted successfully.");
+      toast.success("Book deleted");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to delete this book.");
+      toast.error("Unable to delete book", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     }
   }
 
@@ -480,9 +649,11 @@ export function LibraryDashboard({
         setMemberForm(emptyMemberForm());
       }
 
-      setMessage("Member deleted successfully.");
+      toast.success("Member deleted");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to delete this member.");
+      toast.error("Unable to delete member", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     }
   }
 
@@ -508,39 +679,34 @@ export function LibraryDashboard({
         setTransactionForm(emptyTransactionForm());
       }
 
-      setMessage("Borrow record deleted successfully.");
+      toast.success("Borrow record deleted");
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Unable to delete this borrow record.",
-      );
+      toast.error("Unable to delete borrow record", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     }
   }
 
   const filteredBooks = books.filter((book) => {
     const matchesSearch =
       !bookSearch ||
-      `${book.title} ${book.author} ${book.isbn ?? ""} ${book.categoryName ?? ""}`
+      `${book.title} ${book.author} ${book.isbn ?? ""} ${book.shelfLocation ?? ""}`
         .toLowerCase()
         .includes(bookSearch.toLowerCase());
     const matchesStatus =
       bookStatusFilter === "all" || book.status === bookStatusFilter;
-    const matchesCategory =
-      bookCategoryFilter === "all" ||
-      String(book.categoryId ?? "uncategorized") === bookCategoryFilter;
 
-    return matchesSearch && matchesStatus && matchesCategory;
+    return matchesSearch && matchesStatus;
   });
 
   const filteredMembers = members.filter((member) => {
     const matchesSearch =
       !memberSearch ||
-      `${member.fullName} ${member.email} ${member.phone ?? ""}`
+      `${member.fullName} ${member.studentId} ${member.course} ${member.section}`
         .toLowerCase()
         .includes(memberSearch.toLowerCase());
-    const matchesStatus =
-      memberStatusFilter === "all" || member.membershipStatus === memberStatusFilter;
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   const filteredTransactions = borrowTransactions.filter((transaction) => {
@@ -554,6 +720,14 @@ export function LibraryDashboard({
 
     return matchesSearch && matchesStatus;
   });
+
+  const selectedTransactionRecord = transactionForm.id
+    ? borrowTransactions.find((transaction) => transaction.id === Number(transactionForm.id)) ?? null
+    : null;
+  const availableBookOptions = books.filter(
+    (book) =>
+      book.availableCopies > 0 || String(book.id) === transactionForm.bookId,
+  );
 
   const bookColumns: ColumnDef<BookRow>[] = [
     {
@@ -569,14 +743,21 @@ export function LibraryDashboard({
       ),
     },
     {
-      accessorKey: "categoryName",
-      header: "Category",
-      cell: ({ row }) => row.original.categoryName ?? "Uncategorized",
+      accessorKey: "publisher",
+      header: "Publisher",
+      cell: ({ row }) => (
+        <span className="block min-w-[140px]">{row.original.publisher ?? "N/A"}</span>
+      ),
     },
     {
       accessorKey: "isbn",
       header: "ISBN",
       cell: ({ row }) => row.original.isbn ?? "N/A",
+    },
+    {
+      accessorKey: "shelfLocation",
+      header: "Shelf Location",
+      cell: ({ row }) => row.original.shelfLocation ?? "N/A",
     },
     {
       accessorKey: "status",
@@ -616,21 +797,24 @@ export function LibraryDashboard({
       cell: ({ row }) => (
         <div className="flex gap-2">
           <Button
-            size="sm"
+            size="icon"
             variant="outline"
+            className="size-9"
+            aria-label={`Edit book ${row.original.title}`}
+            title="Edit book"
             onClick={() => beginEditBook(row.original)}
           >
             <Pencil className="size-4" />
-            Edit
           </Button>
           <Button
-            size="sm"
+            size="icon"
             variant="ghost"
-            className="text-[var(--color-danger)] hover:bg-rose-50"
+            className="size-9 text-[var(--color-danger)] hover:bg-rose-50"
+            aria-label={`Delete book ${row.original.title}`}
+            title="Delete book"
             onClick={() => void handleDeleteBook(row.original.id)}
           >
             <Trash2 className="size-4" />
-            Delete
           </Button>
         </div>
       ),
@@ -640,37 +824,22 @@ export function LibraryDashboard({
   const memberColumns: ColumnDef<MemberRow>[] = [
     {
       accessorKey: "fullName",
-      header: "Member",
+      header: "Full Name",
       cell: ({ row }) => (
-        <div className="space-y-1">
-          <p className="font-semibold text-[var(--color-foreground)]">
-            {row.original.fullName}
-          </p>
-          <p className="text-xs text-[var(--color-muted-foreground)]">{row.original.email}</p>
-        </div>
+        <p className="font-semibold text-[var(--color-foreground)]">{row.original.fullName}</p>
       ),
     },
     {
-      accessorKey: "phone",
-      header: "Contact",
-      cell: ({ row }) => row.original.phone ?? "N/A",
+      accessorKey: "studentId",
+      header: "Student ID",
     },
     {
-      accessorKey: "membershipStatus",
-      header: "Status",
-      cell: ({ row }) => (
-        <StatusPill
-          tone={
-            row.original.membershipStatus === "active"
-              ? "success"
-              : row.original.membershipStatus === "inactive"
-                ? "warning"
-                : "danger"
-          }
-        >
-          {row.original.membershipStatus}
-        </StatusPill>
-      ),
+      accessorKey: "course",
+      header: "Course",
+    },
+    {
+      accessorKey: "section",
+      header: "Section",
     },
     {
       accessorKey: "createdAt",
@@ -684,21 +853,24 @@ export function LibraryDashboard({
       cell: ({ row }) => (
         <div className="flex gap-2">
           <Button
-            size="sm"
+            size="icon"
             variant="outline"
+            className="size-9"
+            aria-label={`Edit member ${row.original.fullName}`}
+            title="Edit member"
             onClick={() => beginEditMember(row.original)}
           >
             <Pencil className="size-4" />
-            Edit
           </Button>
           <Button
-            size="sm"
+            size="icon"
             variant="ghost"
-            className="text-[var(--color-danger)] hover:bg-rose-50"
+            className="size-9 text-[var(--color-danger)] hover:bg-rose-50"
+            aria-label={`Delete member ${row.original.fullName}`}
+            title="Delete member"
             onClick={() => void handleDeleteMember(row.original.id)}
           >
             <Trash2 className="size-4" />
-            Delete
           </Button>
         </div>
       ),
@@ -759,21 +931,34 @@ export function LibraryDashboard({
       cell: ({ row }) => (
         <div className="flex gap-2">
           <Button
-            size="sm"
+            size="icon"
+            variant="ghost"
+            className="size-9"
+            aria-label={`View complete borrow details for ${row.original.memberName}`}
+            title="View details"
+            onClick={() => setSelectedTransaction(row.original)}
+          >
+            <Eye className="size-4" />
+          </Button>
+          <Button
+            size="icon"
             variant="outline"
+            className="size-9"
+            aria-label={`Edit borrow record for ${row.original.bookTitle} and ${row.original.memberName}`}
+            title="Edit borrow record"
             onClick={() => beginEditTransaction(row.original)}
           >
             <Pencil className="size-4" />
-            Edit
           </Button>
           <Button
-            size="sm"
+            size="icon"
             variant="ghost"
-            className="text-[var(--color-danger)] hover:bg-rose-50"
+            className="size-9 text-[var(--color-danger)] hover:bg-rose-50"
+            aria-label={`Delete borrow record for ${row.original.bookTitle} and ${row.original.memberName}`}
+            title="Delete borrow record"
             onClick={() => void handleDeleteTransaction(row.original.id)}
           >
             <Trash2 className="size-4" />
-            Delete
           </Button>
         </div>
       ),
@@ -781,31 +966,38 @@ export function LibraryDashboard({
   ];
   return (
     <div className="space-y-8">
-      <section className="flex flex-col gap-4 rounded-[28px] border border-white/70 bg-white/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
-            Library Dashboard
-          </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-[var(--color-foreground)]">
-            Welcome, {userName}
-          </h1>
-          <p className="text-sm leading-6 text-[var(--color-muted-foreground)]">
-            Signed in as {userEmail}. Manage books, members, and borrowing activity from one
-            place.
-          </p>
-        </div>
-        <div className="flex flex-col items-stretch gap-3 sm:items-end">
-          <SignOutButton />
-          <div
-            className={cn(
-              "rounded-2xl border px-4 py-3 text-sm",
-              isPending
-                ? "border-[color:var(--color-warning-border)] bg-[var(--color-warning-bg)] text-[var(--color-warning-foreground)]"
-                : "border-[color:var(--color-border)] bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
-            )}
-          >
-            {isPending ? "Refreshing records..." : message}
+      <section className="flex flex-col gap-6 rounded-[28px] border border-white/70 bg-white/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="shrink-0 rounded-full border border-white/70 bg-white p-1.5 shadow-sm">
+            <Image
+              src="/pup-logo.png"
+              alt="Polytechnic University of the Philippines logo"
+              width={72}
+              height={72}
+              className="h-16 w-16 rounded-full object-cover sm:h-[72px] sm:w-[72px]"
+              priority
+            />
           </div>
+          <div className="space-y-1 text-left">
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[#7b1113] sm:text-base">
+              Polytechnic University of the Philippines
+            </p>
+            <h1 className="text-xl font-bold uppercase tracking-[0.16em] text-[var(--color-foreground)] sm:text-2xl">
+              Library System Management
+            </h1>
+          </div>
+        </div>
+        <div className="flex flex-col items-stretch gap-3 lg:min-w-[260px] lg:items-end">
+          <div className="rounded-2xl border border-[color:var(--color-border)] bg-white/90 px-4 py-3 text-left shadow-sm lg:text-right">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+              Logged In User
+            </p>
+            <p className="mt-1 text-lg font-semibold text-[var(--color-foreground)]">
+              {userName}
+            </p>
+            <p className="text-sm text-[var(--color-muted-foreground)]">{userEmail}</p>
+          </div>
+          <SignOutButton />
         </div>
       </section>
 
@@ -815,6 +1007,118 @@ export function LibraryDashboard({
         <StatCard label="Borrowed" value={stats.borrowed} />
         <StatCard label="Returned" value={stats.returned} />
       </section>
+
+      {selectedTransaction ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 py-6 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="borrow-record-details-title"
+          onClick={() => setSelectedTransaction(null)}
+        >
+          <div
+            className="w-full max-w-2xl rounded-[28px] border border-white/70 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.18)] sm:p-8"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-2">
+                <p className="text-sm font-medium uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
+                  Borrow Record Details
+                </p>
+                <h2
+                  id="borrow-record-details-title"
+                  className="text-2xl font-semibold text-[var(--color-foreground)]"
+                >
+                  {selectedTransaction.bookTitle}
+                </h2>
+                <p className="text-sm text-[var(--color-muted-foreground)]">
+                  Borrowed by {selectedTransaction.memberName}
+                </p>
+              </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-9"
+                aria-label="Close borrow record details"
+                onClick={() => setSelectedTransaction(null)}
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-[var(--color-muted)]/60 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
+                  Status
+                </p>
+                <div className="mt-3">
+                  <StatusPill
+                    tone={
+                      selectedTransaction.status === "returned"
+                        ? "success"
+                        : selectedTransaction.status === "borrowed"
+                          ? "warning"
+                          : "danger"
+                    }
+                  >
+                    {selectedTransaction.status}
+                  </StatusPill>
+                </div>
+              </article>
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-[var(--color-muted)]/60 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
+                  Overdue Penalty
+                </p>
+                <p className="mt-3 text-2xl font-semibold text-[var(--color-foreground)]">
+                  {getPenaltyAmount(selectedTransaction) > 0
+                    ? `PHP ${getPenaltyAmount(selectedTransaction)}`
+                    : "No penalty"}
+                </p>
+                <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
+                  {getOverdueDays(
+                    selectedTransaction.dueAt,
+                    selectedTransaction.returnedAt,
+                  ) > 0
+                    ? `${getOverdueDays(selectedTransaction.dueAt, selectedTransaction.returnedAt)} day(s) overdue at PHP ${PENALTY_PER_DAY}/day`
+                    : `Penalty rate: PHP ${PENALTY_PER_DAY}/day`}
+                </p>
+              </article>
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
+                  Borrowed At
+                </p>
+                <p className="mt-2 text-base font-medium text-[var(--color-foreground)]">
+                  {toReadableDateTime(selectedTransaction.borrowedAt)}
+                </p>
+              </article>
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
+                  Due Date
+                </p>
+                <p className="mt-2 text-base font-medium text-[var(--color-foreground)]">
+                  {toReadableDateTime(selectedTransaction.dueAt)}
+                </p>
+              </article>
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
+                  Returned At
+                </p>
+                <p className="mt-2 text-base font-medium text-[var(--color-foreground)]">
+                  {toReadableDateTime(selectedTransaction.returnedAt)}
+                </p>
+              </article>
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
+                  Notes
+                </p>
+                <p className="mt-2 text-base font-medium text-[var(--color-foreground)]">
+                  {selectedTransaction.notes?.trim() || "No notes provided."}
+                </p>
+              </article>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <section className="space-y-4">
         <div className="flex flex-wrap gap-3">
@@ -873,31 +1177,19 @@ export function LibraryDashboard({
                     placeholder="Thomas H. Cormen"
                   />
                 </Field>
-                <Field label="Category">
-                  <select
-                    value={bookForm.categoryId}
-                    onChange={(event) =>
-                      setBookForm((current) => ({
-                        ...current,
-                        categoryId: event.target.value,
-                      }))
-                    }
-                    className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
-                  >
-                    <option value="">No category</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
                 <Field label="ISBN">
                   <Input
                     value={bookForm.isbn}
                     onChange={(event) =>
-                      setBookForm((current) => ({ ...current, isbn: event.target.value }))
+                      setBookForm((current) => ({
+                        ...current,
+                        isbn: event.target.value.replace(/\D/g, "").slice(0, 13),
+                      }))
                     }
+                    inputMode="numeric"
+                    maxLength={13}
+                    pattern="\d{13}"
+                    title="ISBN must contain exactly 13 digits."
                     placeholder="9780262033848"
                   />
                 </Field>
@@ -924,15 +1216,13 @@ export function LibraryDashboard({
                   />
                 </Field>
                 <Field label="Shelf Location">
-                  <Input
+                  <OptionSelect
                     value={bookForm.shelfLocation}
-                    onChange={(event) =>
-                      setBookForm((current) => ({
-                        ...current,
-                        shelfLocation: event.target.value,
-                      }))
+                    onChange={(shelfLocation) =>
+                      setBookForm((current) => ({ ...current, shelfLocation }))
                     }
-                    placeholder="A-12"
+                    options={SHELF_LOCATION_OPTIONS}
+                    placeholder="Select a shelf location"
                   />
                 </Field>
                 <Field label="Total Copies">
@@ -980,13 +1270,13 @@ export function LibraryDashboard({
             </section>
 
             <section className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_220px]">
+              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-[var(--color-muted-foreground)]" />
                   <Input
                     value={bookSearch}
                     onChange={(event) => setBookSearch(event.target.value)}
-                    placeholder="Search title, author, ISBN, or category"
+                    placeholder="Search title, author, ISBN, or shelf location"
                     className="pl-9"
                   />
                 </div>
@@ -999,19 +1289,6 @@ export function LibraryDashboard({
                   <option value="available">Available</option>
                   <option value="low_stock">Low stock</option>
                   <option value="unavailable">Unavailable</option>
-                </select>
-                <select
-                  value={bookCategoryFilter}
-                  onChange={(event) => setBookCategoryFilter(event.target.value)}
-                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
-                >
-                  <option value="all">All categories</option>
-                  <option value="uncategorized">Uncategorized</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
                 </select>
               </div>
 
@@ -1033,7 +1310,7 @@ export function LibraryDashboard({
                     Member Directory
                   </h2>
                   <p className="text-sm text-[var(--color-muted-foreground)]">
-                    Maintain your active library members and contact details.
+                    Maintain your member directory with academic details.
                   </p>
                 </div>
                 {memberForm.id ? (
@@ -1056,59 +1333,44 @@ export function LibraryDashboard({
                     placeholder="Maria Santos"
                   />
                 </Field>
-                <Field label="Email">
+                <Field label="Student ID">
                   <Input
-                    type="email"
-                    value={memberForm.email}
+                    value={memberForm.studentId}
                     onChange={(event) =>
                       setMemberForm((current) => ({
                         ...current,
-                        email: event.target.value,
+                        studentId: event.target.value.replace(/\D/g, "").slice(0, 9),
                       }))
                     }
-                    placeholder="maria@example.com"
+                    inputMode="numeric"
+                    maxLength={9}
+                    pattern="\d{9}"
+                    title="Student ID must contain exactly 9 digits."
+                    placeholder="123456789"
                   />
                 </Field>
-                <Field label="Phone">
-                  <Input
-                    value={memberForm.phone}
-                    onChange={(event) =>
-                      setMemberForm((current) => ({ ...current, phone: event.target.value }))
+                <Field label="Course">
+                  <OptionSelect
+                    value={memberForm.course}
+                    onChange={(course) =>
+                      setMemberForm((current) => ({ ...current, course }))
                     }
-                    placeholder="+63 912 345 6789"
+                    options={COURSE_OPTIONS}
+                    placeholder="Select a course"
                   />
                 </Field>
-                <Field label="Status">
-                  <select
-                    value={memberForm.membershipStatus}
+                <Field label="Section">
+                  <Input
+                    value={memberForm.section}
                     onChange={(event) =>
                       setMemberForm((current) => ({
                         ...current,
-                        membershipStatus: event.target.value as MemberFormValues["membershipStatus"],
+                        section: event.target.value,
                       }))
                     }
-                    className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="suspended">Suspended</option>
-                  </select>
+                    placeholder="BSIT 2A"
+                  />
                 </Field>
-                <div className="md:col-span-2">
-                  <Field label="Address">
-                    <textarea
-                      value={memberForm.address}
-                      onChange={(event) =>
-                        setMemberForm((current) => ({
-                          ...current,
-                          address: event.target.value,
-                        }))
-                      }
-                      placeholder="Street, city, province"
-                      className="min-h-24 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
-                    />
-                  </Field>
-                </div>
                 <div className="flex items-center gap-3 md:col-span-2">
                   <Button type="submit" disabled={isPending}>
                     <Plus className="size-4" />
@@ -1128,32 +1390,22 @@ export function LibraryDashboard({
             </section>
 
             <section className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
+              <div className="grid gap-4">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-[var(--color-muted-foreground)]" />
                   <Input
                     value={memberSearch}
                     onChange={(event) => setMemberSearch(event.target.value)}
-                    placeholder="Search member name, email, or phone"
+                    placeholder="Search member name, student ID, course, or section"
                     className="pl-9"
                   />
                 </div>
-                <select
-                  value={memberStatusFilter}
-                  onChange={(event) => setMemberStatusFilter(event.target.value)}
-                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
-                >
-                  <option value="all">All statuses</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="suspended">Suspended</option>
-                </select>
               </div>
 
               <DataTable
                 columns={memberColumns}
                 data={filteredMembers}
-                emptyMessage="No members matched your search and filters."
+                emptyMessage="No members matched your search."
               />
             </section>
           </div>
@@ -1194,7 +1446,7 @@ export function LibraryDashboard({
                     className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
                   >
                     <option value="">Select a book</option>
-                    {books.map((book) => (
+                    {availableBookOptions.map((book) => (
                       <option key={book.id} value={book.id}>
                         {book.title} ({book.availableCopies} available)
                       </option>
@@ -1220,23 +1472,32 @@ export function LibraryDashboard({
                     ))}
                   </select>
                 </Field>
-                <Field label="Status">
-                  <select
-                    value={transactionForm.status}
-                    onChange={(event) =>
-                      setTransactionForm((current) => ({
-                        ...current,
-                        status: event.target.value as TransactionFormValues["status"],
-                      }))
-                    }
-                    className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
-                  >
-                    <option value="borrowed">Borrowed</option>
-                    <option value="returned">Returned</option>
-                    <option value="overdue">Overdue</option>
-                    <option value="lost">Lost</option>
-                  </select>
-                </Field>
+                {transactionForm.id ? (
+                  <Field label="Status">
+                    <select
+                      value={transactionForm.status}
+                      onChange={(event) =>
+                        setTransactionForm((current) => ({
+                          ...current,
+                          status: event.target.value as TransactionFormValues["status"],
+                          returnedAt: event.target.value === "returned" ? current.returnedAt : "",
+                        }))
+                      }
+                      className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
+                    >
+                      {selectedTransactionRecord?.status === "overdue" ? (
+                        <option value="overdue">Overdue (automatic)</option>
+                      ) : null}
+                      <option value="borrowed">Borrowed</option>
+                      <option value="returned">Returned</option>
+                      <option value="lost">Lost</option>
+                    </select>
+                  </Field>
+                ) : (
+                  <Field label="Status">
+                    <Input value="Borrowed" disabled />
+                  </Field>
+                )}
                 <Field label="Borrowed At">
                   <Input
                     type="datetime-local"
@@ -1245,6 +1506,7 @@ export function LibraryDashboard({
                       setTransactionForm((current) => ({
                         ...current,
                         borrowedAt: event.target.value,
+                        dueAt: addSchoolDaysFromLocalDateTime(event.target.value, 5),
                       }))
                     }
                   />
@@ -1253,26 +1515,23 @@ export function LibraryDashboard({
                   <Input
                     type="datetime-local"
                     value={transactionForm.dueAt}
-                    onChange={(event) =>
-                      setTransactionForm((current) => ({
-                        ...current,
-                        dueAt: event.target.value,
-                      }))
-                    }
+                    disabled
                   />
                 </Field>
-                <Field label="Returned At">
-                  <Input
-                    type="datetime-local"
-                    value={transactionForm.returnedAt}
-                    onChange={(event) =>
-                      setTransactionForm((current) => ({
-                        ...current,
-                        returnedAt: event.target.value,
-                      }))
-                    }
-                  />
-                </Field>
+                {transactionForm.id && transactionForm.status === "returned" ? (
+                  <Field label="Returned At">
+                    <Input
+                      type="datetime-local"
+                      value={transactionForm.returnedAt}
+                      onChange={(event) =>
+                        setTransactionForm((current) => ({
+                          ...current,
+                          returnedAt: event.target.value,
+                        }))
+                      }
+                    />
+                  </Field>
+                ) : null}
                 <div className="xl:col-span-3 md:col-span-2">
                   <Field label="Notes">
                     <textarea

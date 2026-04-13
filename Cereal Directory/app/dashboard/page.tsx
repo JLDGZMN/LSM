@@ -21,7 +21,6 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-7xl">
         <LibraryDashboard
           initialStats={snapshot.stats}
-          initialCategories={snapshot.categories}
           initialBooks={snapshot.books}
           initialMembers={snapshot.members}
           initialBorrowTransactions={snapshot.borrowTransactions}
