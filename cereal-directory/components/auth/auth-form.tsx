@@ -50,7 +50,7 @@ const signUpDefaults: SignUpValues = {
 };
 
 const passwordRuleText =
-  "Use at least 8 characters with uppercase, lowercase, number, and special character.";
+  "Use at least 8 characters with no spaces, uppercase, lowercase, number, and special character.";
 
 function lettersOnly(value: string) {
   return value.replace(/[^A-Za-z\s.'-]/g, "");
@@ -59,6 +59,10 @@ function lettersOnly(value: string) {
 function validateStrongPassword(value: string) {
   if (value.length < 8) {
     return "Password must be at least 8 characters long.";
+  }
+
+  if (/\s/.test(value)) {
+    return "Password cannot contain spaces.";
   }
 
   if (!/[A-Z]/.test(value)) {
@@ -84,6 +88,10 @@ const passwordRules = [
   {
     label: "At least 8 characters",
     test: (value: string) => value.length >= 8,
+  },
+  {
+    label: "No spaces",
+    test: (value: string) => !/\s/.test(value),
   },
   {
     label: "One uppercase letter",
@@ -581,7 +589,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 error={visibleSignUpErrors.password}
                 required
                 minLength={8}
-                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                pattern="(?=\\S{8,}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).*"
                 title={passwordRuleText}
                 value={signUpValues.password}
                 onChange={(event) =>
