@@ -95,7 +95,6 @@ export type MemberInput = {
 export type BorrowTransactionInput = {
   bookId: number;
   memberId: number;
-  dueAt: string;
   borrowedAt: string | null;
   returnedAt: string | null;
   status: BorrowStatus;
@@ -667,7 +666,7 @@ export async function updateBook(id: number, input: BookInput) {
 
   const status = getBookStatus(totalCopies, availableCopies);
 
-  await promisePool.execute(
+  const [result] = await promisePool.execute<ResultSetHeader>(
     `
       UPDATE books
       SET
@@ -697,10 +696,21 @@ export async function updateBook(id: number, input: BookInput) {
       id,
     ],
   );
+
+  if (result.affectedRows === 0) {
+    throw new Error("Book could not be found.");
+  }
 }
 
 export async function deleteBook(id: number) {
-  await promisePool.execute("DELETE FROM books WHERE id = ?", [id]);
+  const [result] = await promisePool.execute<ResultSetHeader>(
+    "DELETE FROM books WHERE id = ?",
+    [id],
+  );
+
+  if (result.affectedRows === 0) {
+    throw new Error("Book could not be found.");
+  }
 }
 
 export async function createMember(input: MemberInput) {
@@ -736,7 +746,7 @@ export async function updateMember(id: number, input: MemberInput) {
   const course = normalizeLettersOnlyText(input.course, "Course");
   const section = normalizeSection(input.section);
 
-  await promisePool.execute(
+  const [result] = await promisePool.execute<ResultSetHeader>(
     `
       UPDATE members
       SET
@@ -754,10 +764,21 @@ export async function updateMember(id: number, input: MemberInput) {
       id,
     ],
   );
+
+  if (result.affectedRows === 0) {
+    throw new Error("Member could not be found.");
+  }
 }
 
 export async function deleteMember(id: number) {
-  await promisePool.execute("DELETE FROM members WHERE id = ?", [id]);
+  const [result] = await promisePool.execute<ResultSetHeader>(
+    "DELETE FROM members WHERE id = ?",
+    [id],
+  );
+
+  if (result.affectedRows === 0) {
+    throw new Error("Member could not be found.");
+  }
 }
 
 export async function createBorrowTransaction(input: BorrowTransactionInput) {
@@ -960,7 +981,6 @@ export async function updateBorrowTransaction(
     if (previousBookId === bookId) {
       const shouldRestore =
         previousStatus !== "returned" &&
-        previousStatus !== "lost" &&
         resolvedStatus === "returned";
       const shouldConsume =
         previousStatus === "returned" &&

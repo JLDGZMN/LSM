@@ -25,7 +25,6 @@ function parseTransactionPayload(body: Record<string, unknown>): BorrowTransacti
   return {
     bookId: Number(body.bookId ?? 0),
     memberId: Number(body.memberId ?? 0),
-    dueAt: String(body.dueAt ?? ""),
     borrowedAt:
       body.borrowedAt == null || body.borrowedAt === ""
         ? null

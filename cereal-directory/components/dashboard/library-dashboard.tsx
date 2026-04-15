@@ -334,6 +334,44 @@ function validateMemberForm(values: MemberFormValues) {
   return "";
 }
 
+function validateTransactionForm(values: TransactionFormValues) {
+  if (!values.bookId) {
+    return "Book is required.";
+  }
+
+  if (!values.memberId) {
+    return "Member is required.";
+  }
+
+  if (!values.borrowedAt) {
+    return "Borrowed date is required.";
+  }
+
+  const borrowedAt = new Date(values.borrowedAt);
+
+  if (Number.isNaN(borrowedAt.getTime())) {
+    return "Borrowed date is invalid.";
+  }
+
+  if (values.status === "returned") {
+    if (!values.returnedAt) {
+      return "Returned date is required for returned records.";
+    }
+
+    const returnedAt = new Date(values.returnedAt);
+
+    if (Number.isNaN(returnedAt.getTime())) {
+      return "Returned date is invalid.";
+    }
+
+    if (returnedAt.getTime() < borrowedAt.getTime()) {
+      return "Returned date cannot be earlier than the borrowed date.";
+    }
+  }
+
+  return "";
+}
+
 function deriveStats(
   books: BookRow[],
   members: MemberRow[],
@@ -690,6 +728,15 @@ export function LibraryDashboard({
 
   async function handleTransactionSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const validationError = validateTransactionForm(transactionForm);
+
+    if (validationError) {
+      toast.error("Review borrow record fields", {
+        description: validationError,
+      });
+      return;
+    }
 
     try {
       const endpoint = transactionForm.id
@@ -1586,7 +1633,11 @@ export function LibraryDashboard({
                 ) : null}
               </div>
 
-              <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" onSubmit={handleTransactionSubmit}>
+              <form
+                className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+                onSubmit={handleTransactionSubmit}
+                noValidate
+              >
                 <Field label="Book">
                   <select
                     value={transactionForm.bookId}
@@ -1596,6 +1647,7 @@ export function LibraryDashboard({
                         bookId: event.target.value,
                       }))
                     }
+                    required
                     className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
                   >
                     <option value="">Select a book</option>
@@ -1615,6 +1667,7 @@ export function LibraryDashboard({
                         memberId: event.target.value,
                       }))
                     }
+                    required
                     className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
                   >
                     <option value="">Select a member</option>
@@ -1655,6 +1708,7 @@ export function LibraryDashboard({
                   <Input
                     type="datetime-local"
                     value={transactionForm.borrowedAt}
+                    required
                     onChange={(event) =>
                       setTransactionForm((current) => ({
                         ...current,
@@ -1676,6 +1730,7 @@ export function LibraryDashboard({
                     <Input
                       type="datetime-local"
                       value={transactionForm.returnedAt}
+                      required
                       onChange={(event) =>
                         setTransactionForm((current) => ({
                           ...current,

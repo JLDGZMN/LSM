@@ -9,11 +9,8 @@ if (!connectionString) {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var __libraryPool: Pool | undefined;
-  // eslint-disable-next-line no-var
   var __libraryPromisePool: PromisePool | undefined;
-  // eslint-disable-next-line no-var
   var __libraryDb: Kysely<unknown> | undefined;
 }
 

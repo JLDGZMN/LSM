@@ -130,15 +130,35 @@ function getSignUpErrors(values: SignUpValues) {
       : "Enter a valid email address.",
     password: validateStrongPassword(values.password),
     confirmPassword:
-      values.confirmPassword === values.password && values.confirmPassword.length > 0
-        ? ""
-        : "Passwords must match.",
+      values.confirmPassword.length === 0
+        ? "Confirm your password."
+        : values.confirmPassword === values.password
+          ? ""
+          : "Passwords do not match.",
   };
 }
 
 function hasErrors(errors: Record<string, string>) {
   return Object.values(errors).some(Boolean);
 }
+
+function getFirstErrorField(errors: Record<string, string>) {
+  return Object.entries(errors).find(([, error]) => Boolean(error))?.[0] ?? null;
+}
+
+const fieldIds: Record<AuthMode, Record<string, string>> = {
+  signin: {
+    identifier: "identifier",
+    password: "password",
+  },
+  signup: {
+    fullName: "full-name",
+    username: "username",
+    email: "email",
+    password: "new-password",
+    confirmPassword: "confirm-password",
+  },
+};
 
 interface FieldProps {
   id: string;
@@ -169,6 +189,8 @@ function FormField({
   type = "text",
   value,
 }: FieldProps) {
+  const errorId = error ? `${id}-error` : undefined;
+
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
@@ -182,9 +204,19 @@ function FormField({
         required={required}
         title={title}
         placeholder={placeholder}
-        className={cn(error && "border-[color:var(--color-danger)]")}
+        aria-invalid={Boolean(error)}
+        aria-describedby={errorId}
+        className={cn(
+          error &&
+            "border-[color:var(--color-danger)] bg-rose-50/40 focus-visible:ring-[var(--color-danger)]",
+        )}
         onChange={(event) => onChange(event.target.value)}
       />
+      {error ? (
+        <p id={errorId} className="text-xs font-medium text-[var(--color-danger)]">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -192,7 +224,7 @@ function FormField({
 function PasswordChecklist({ value }: { value: string }) {
   return (
     <div
-      className="grid gap-2 rounded-2xl border border-[color:var(--color-border)] bg-[var(--color-muted)] px-4 py-3"
+      className="grid gap-2 rounded-2xl border border-[color:var(--color-border)] bg-white px-4 py-3 sm:grid-cols-2"
       aria-live="polite"
     >
       {passwordRules.map((rule) => {
@@ -202,7 +234,7 @@ function PasswordChecklist({ value }: { value: string }) {
           <div
             key={rule.label}
             className={cn(
-              "flex items-center gap-2 text-sm transition-colors",
+              "flex items-center gap-2 text-xs font-medium transition-colors",
               passed
                 ? "text-emerald-700"
                 : "text-[var(--color-muted-foreground)]",
@@ -227,6 +259,52 @@ function PasswordChecklist({ value }: { value: string }) {
   );
 }
 
+function PasswordMatchStatus({
+  confirmPassword,
+  password,
+}: {
+  confirmPassword: string;
+  password: string;
+}) {
+  const hasConfirmation = confirmPassword.length > 0;
+  const matches = hasConfirmation && confirmPassword === password;
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium",
+        !hasConfirmation
+          ? "border-[color:var(--color-border)] bg-white text-[var(--color-muted-foreground)]"
+          : matches
+            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+            : "border-rose-200 bg-rose-50 text-[var(--color-danger)]",
+      )}
+      aria-live="polite"
+    >
+      <span
+        className={cn(
+          "flex size-5 shrink-0 items-center justify-center rounded-full border",
+          !hasConfirmation
+            ? "border-[color:var(--color-border)] bg-white/80"
+            : matches
+              ? "border-emerald-200 bg-white"
+              : "border-rose-200 bg-white",
+        )}
+        aria-hidden="true"
+      >
+        {matches ? <Check className="size-3.5" /> : <X className="size-3.5" />}
+      </span>
+      <span>
+        {!hasConfirmation
+          ? "Confirm password to check the match."
+          : matches
+            ? "Passwords match."
+            : "Passwords do not match."}
+      </span>
+    </div>
+  );
+}
+
 interface AuthFormProps {
   initialMode?: AuthMode;
 }
@@ -236,6 +314,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
   const [mode, setMode] = React.useState<AuthMode>(initialMode);
   const [signInValues, setSignInValues] = React.useState(signInDefaults);
   const [signUpValues, setSignUpValues] = React.useState(signUpDefaults);
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const {
     data: session,
@@ -250,19 +329,32 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
 
   React.useEffect(() => {
     setMode(initialMode);
+    setHasAttemptedSubmit(false);
   }, [initialMode]);
 
   const signInErrors = getSignInErrors(signInValues);
   const signUpErrors = getSignUpErrors(signUpValues);
 
   const currentErrors = mode === "signin" ? signInErrors : signUpErrors;
+  const visibleSignInErrors = hasAttemptedSubmit ? signInErrors : signInDefaults;
+  const visibleSignUpErrors = hasAttemptedSubmit ? signUpErrors : signUpDefaults;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setHasAttemptedSubmit(true);
 
     if (hasErrors(currentErrors)) {
+      const firstField = getFirstErrorField(currentErrors);
       const firstError = Object.values(currentErrors).find(Boolean);
-      toast.error("Please review the highlighted fields", {
+      const firstFieldId = firstField ? fieldIds[mode][firstField] : null;
+
+      if (firstFieldId) {
+        requestAnimationFrame(() => {
+          document.getElementById(firstFieldId)?.focus();
+        });
+      }
+
+      toast.error("Please review the highlighted field", {
         description: firstError || "Complete the required fields before continuing.",
       });
       return;
@@ -292,6 +384,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
         }
 
         toast.success("Signed in successfully");
+        setHasAttemptedSubmit(false);
         router.push("/dashboard");
         router.refresh();
         return;
@@ -315,6 +408,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
         description: "Please sign in with your new credentials.",
       });
       setSignUpValues(signUpDefaults);
+      setHasAttemptedSubmit(false);
       router.push("/sign-in");
       router.refresh();
     } catch (error) {
@@ -357,6 +451,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
               type="button"
               onClick={() => {
                 setMode("signin");
+                setHasAttemptedSubmit(false);
                 router.push("/sign-in");
               }}
               className={cn(
@@ -372,6 +467,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
               type="button"
               onClick={() => {
                 setMode("signup");
+                setHasAttemptedSubmit(false);
                 router.push("/sign-up");
               }}
               className={cn(
@@ -406,7 +502,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 placeholder="Enter your email or username"
                 autoComplete="username"
                 value={signInValues.identifier}
-                error={signInErrors.identifier}
+                error={visibleSignInErrors.identifier}
                 required
                 onChange={(identifier) =>
                   setSignInValues((current) => ({ ...current, identifier }))
@@ -418,7 +514,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 label="Password"
                 placeholder="Enter your password"
                 autoComplete="current-password"
-                error={signInErrors.password}
+                error={visibleSignInErrors.password}
                 required
                 minLength={8}
                 value={signInValues.password}
@@ -438,7 +534,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 placeholder="Enter your full name"
                 autoComplete="name"
                 value={signUpValues.fullName}
-                error={signUpErrors.fullName}
+                error={visibleSignUpErrors.fullName}
                 required
                 pattern="[A-Za-z\s.'-]+"
                 onChange={(fullName) =>
@@ -455,7 +551,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                   placeholder="Choose a username"
                   autoComplete="username"
                   value={signUpValues.username}
-                  error={signUpErrors.username}
+                  error={visibleSignUpErrors.username}
                   required
                   minLength={3}
                   onChange={(username) =>
@@ -469,7 +565,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                   autoComplete="email"
                   type="email"
                   value={signUpValues.email}
-                  error={signUpErrors.email}
+                  error={visibleSignUpErrors.email}
                   required
                   onChange={(email) =>
                     setSignUpValues((current) => ({ ...current, email }))
@@ -482,8 +578,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 label="Password"
                 placeholder="Create a secure password"
                 autoComplete="new-password"
-                hint={passwordRuleText}
-                error={signUpErrors.password}
+                error={visibleSignUpErrors.password}
                 required
                 minLength={8}
                 pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
@@ -503,7 +598,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 label="Confirm Password"
                 placeholder="Re-enter your password"
                 autoComplete="new-password"
-                error={signUpErrors.confirmPassword}
+                error={visibleSignUpErrors.confirmPassword}
                 required
                 minLength={8}
                 value={signUpValues.confirmPassword}
@@ -513,6 +608,10 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                     confirmPassword: event.target.value,
                   }))
                 }
+              />
+              <PasswordMatchStatus
+                password={signUpValues.password}
+                confirmPassword={signUpValues.confirmPassword}
               />
             </>
           )}

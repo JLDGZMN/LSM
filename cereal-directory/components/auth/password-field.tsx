@@ -23,6 +23,7 @@ export function PasswordField({
   ...props
 }: PasswordFieldProps) {
   const [visible, setVisible] = React.useState(false);
+  const errorId = error && id ? `${id}-error` : undefined;
 
   return (
     <div className="space-y-2">
@@ -38,9 +39,12 @@ export function PasswordField({
         <Input
           id={id}
           type={visible ? "text" : "password"}
+          aria-invalid={Boolean(error)}
+          aria-describedby={errorId}
           className={cn(
             "pr-11",
-            error && "border-[color:var(--color-danger)]",
+            error &&
+              "border-[color:var(--color-danger)] bg-rose-50/40 focus-visible:ring-[var(--color-danger)]",
             className,
           )}
           {...props}
@@ -56,6 +60,11 @@ export function PasswordField({
           {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </Button>
       </div>
+      {error ? (
+        <p id={errorId} className="text-xs font-medium text-[var(--color-danger)]">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
