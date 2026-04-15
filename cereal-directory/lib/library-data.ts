@@ -218,6 +218,20 @@ function normalizePositiveInteger(value: number, field: string) {
   return value;
 }
 
+function normalizePublishedYear(value: number | null) {
+  if (value == null) {
+    throw new Error("Published year is required.");
+  }
+
+  const currentYear = new Date().getFullYear();
+
+  if (!Number.isInteger(value) || value < 1000 || value > currentYear) {
+    throw new Error(`Published year must be between 1000 and ${currentYear}.`);
+  }
+
+  return value;
+}
+
 function normalizeRecordId(value: number, field: string) {
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(`${field} is required.`);
@@ -526,6 +540,12 @@ export async function createBook(input: BookInput) {
   const normalizedTitle = normalizeRequiredText(input.title, "Title");
   const normalizedAuthor = normalizeRequiredText(input.author, "Author");
   const normalizedIsbn = normalizeIsbn(input.isbn);
+  const normalizedPublisher = normalizeRequiredText(input.publisher ?? "", "Publisher");
+  const publishedYear = normalizePublishedYear(input.publishedYear);
+  const shelfLocation = normalizeRequiredText(
+    input.shelfLocation ?? "",
+    "Shelf location",
+  );
   const totalCopies = normalizePositiveInteger(input.totalCopies, "Total copies");
   const availableCopies = normalizeNonNegativeInteger(
     input.availableCopies,
@@ -558,9 +578,9 @@ export async function createBook(input: BookInput) {
       normalizedTitle,
       normalizedIsbn,
       normalizedAuthor,
-      normalizeText(input.publisher),
-      input.publishedYear,
-      normalizeText(input.shelfLocation),
+      normalizedPublisher,
+      publishedYear,
+      shelfLocation,
       totalCopies,
       availableCopies,
       status,
@@ -574,6 +594,12 @@ export async function updateBook(id: number, input: BookInput) {
   const normalizedTitle = normalizeRequiredText(input.title, "Title");
   const normalizedAuthor = normalizeRequiredText(input.author, "Author");
   const normalizedIsbn = normalizeIsbn(input.isbn);
+  const normalizedPublisher = normalizeRequiredText(input.publisher ?? "", "Publisher");
+  const publishedYear = normalizePublishedYear(input.publishedYear);
+  const shelfLocation = normalizeRequiredText(
+    input.shelfLocation ?? "",
+    "Shelf location",
+  );
   const totalCopies = normalizePositiveInteger(input.totalCopies, "Total copies");
   const availableCopies = normalizeNonNegativeInteger(
     input.availableCopies,
@@ -632,9 +658,9 @@ export async function updateBook(id: number, input: BookInput) {
       normalizedTitle,
       normalizedIsbn,
       normalizedAuthor,
-      normalizeText(input.publisher),
-      input.publishedYear,
-      normalizeText(input.shelfLocation),
+      normalizedPublisher,
+      publishedYear,
+      shelfLocation,
       totalCopies,
       availableCopies,
       status,

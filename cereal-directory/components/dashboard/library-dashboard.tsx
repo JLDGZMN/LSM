@@ -101,6 +101,8 @@ const SHELF_LOCATION_OPTIONS = ["A", "B", "C", "D", "E"].flatMap((letter) =>
   Array.from({ length: 12 }, (_, index) => `${letter}-${index + 1}`),
 ) as string[];
 
+const currentYear = new Date().getFullYear();
+
 const emptyBookForm = (): BookFormValues => ({
   id: "",
   title: "",
@@ -231,6 +233,56 @@ function getOverdueDays(dueAt: string, returnedAt?: string | null) {
 
 function getPenaltyAmount(transaction: BorrowTransactionRow) {
   return getOverdueDays(transaction.dueAt, transaction.returnedAt) * PENALTY_PER_DAY;
+}
+
+function validateBookForm(values: BookFormValues) {
+  const requiredFields: Array<[keyof BookFormValues, string]> = [
+    ["title", "Title"],
+    ["author", "Author"],
+    ["isbn", "ISBN"],
+    ["publisher", "Publisher"],
+    ["publishedYear", "Published year"],
+    ["shelfLocation", "Shelf location"],
+    ["totalCopies", "Total copies"],
+    ["availableCopies", "Available copies"],
+  ];
+
+  const missingField = requiredFields.find(([key]) => !values[key].trim());
+
+  if (missingField) {
+    return `${missingField[1]} is required.`;
+  }
+
+  if (!/^\d{13}$/.test(values.isbn)) {
+    return "ISBN must contain exactly 13 digits.";
+  }
+
+  const publishedYear = Number(values.publishedYear);
+
+  if (
+    !Number.isInteger(publishedYear) ||
+    publishedYear < 1000 ||
+    publishedYear > currentYear
+  ) {
+    return `Published year must be between 1000 and ${currentYear}.`;
+  }
+
+  const totalCopies = Number(values.totalCopies);
+  const availableCopies = Number(values.availableCopies);
+
+  if (!Number.isInteger(totalCopies) || totalCopies <= 0) {
+    return "Total copies must be a whole number greater than zero.";
+  }
+
+  if (!Number.isInteger(availableCopies) || availableCopies < 0) {
+    return "Available copies must be a non-negative whole number.";
+  }
+
+  if (availableCopies > totalCopies) {
+    return "Available copies cannot be greater than total copies.";
+  }
+
+  return "";
 }
 
 function deriveStats(
@@ -506,6 +558,15 @@ export function LibraryDashboard({
 
   async function handleBookSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const validationError = validateBookForm(bookForm);
+
+    if (validationError) {
+      toast.error("Complete all book fields", {
+        description: validationError,
+      });
+      return;
+    }
 
     try {
       const payload = {
@@ -1158,13 +1219,18 @@ export function LibraryDashboard({
                 ) : null}
               </div>
 
-              <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" onSubmit={handleBookSubmit}>
+              <form
+                className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+                onSubmit={handleBookSubmit}
+                noValidate
+              >
                 <Field label="Title">
                   <Input
                     value={bookForm.title}
                     onChange={(event) =>
                       setBookForm((current) => ({ ...current, title: event.target.value }))
                     }
+                    required
                     placeholder="Introduction to Algorithms"
                   />
                 </Field>
@@ -1174,6 +1240,7 @@ export function LibraryDashboard({
                     onChange={(event) =>
                       setBookForm((current) => ({ ...current, author: event.target.value }))
                     }
+                    required
                     placeholder="Thomas H. Cormen"
                   />
                 </Field>
@@ -1189,6 +1256,7 @@ export function LibraryDashboard({
                     inputMode="numeric"
                     maxLength={13}
                     pattern="\d{13}"
+                    required
                     title="ISBN must contain exactly 13 digits."
                     placeholder="9780262033848"
                   />
@@ -1199,12 +1267,15 @@ export function LibraryDashboard({
                     onChange={(event) =>
                       setBookForm((current) => ({ ...current, publisher: event.target.value }))
                     }
+                    required
                     placeholder="MIT Press"
                   />
                 </Field>
                 <Field label="Published Year">
                   <Input
                     type="number"
+                    min="1000"
+                    max={currentYear}
                     value={bookForm.publishedYear}
                     onChange={(event) =>
                       setBookForm((current) => ({
@@ -1212,6 +1283,7 @@ export function LibraryDashboard({
                         publishedYear: event.target.value,
                       }))
                     }
+                    required
                     placeholder="2025"
                   />
                 </Field>
@@ -1236,6 +1308,7 @@ export function LibraryDashboard({
                         totalCopies: event.target.value,
                       }))
                     }
+                    required
                   />
                 </Field>
                 <Field label="Available Copies">
@@ -1249,6 +1322,7 @@ export function LibraryDashboard({
                         availableCopies: event.target.value,
                       }))
                     }
+                    required
                   />
                 </Field>
                 <div className="flex items-center gap-3 md:col-span-2 xl:col-span-3">

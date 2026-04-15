@@ -14,8 +14,9 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
         <section className="flex w-full items-center justify-center">
           <div className="w-full max-w-xl space-y-6">
             <div className="space-y-2 text-center">
-              <p className="text-sm font-medium uppercase tracking-[0.28em] text-[var(--color-muted-foreground)]">
-                Library System Management
+              <p className="text-sm uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
+                <span className="font-black text-[#7b1113]">PUP</span>{" "}
+                <span className="font-medium">Library System Management</span>
               </p>
               <h1 className="text-3xl font-semibold tracking-tight text-[var(--color-foreground)]">
                 {mode === "signin"

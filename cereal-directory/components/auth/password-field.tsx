@@ -38,7 +38,11 @@ export function PasswordField({
         <Input
           id={id}
           type={visible ? "text" : "password"}
-          className={cn("pr-11", error && "border-[color:var(--color-danger)]")}
+          className={cn(
+            "pr-11",
+            error && "border-[color:var(--color-danger)]",
+            className,
+          )}
           {...props}
         />
         <Button

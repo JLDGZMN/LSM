@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { BookMarked, CircleAlert } from "lucide-react";
+import Image from "next/image";
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { PasswordField } from "@/components/auth/password-field";
 import { authClient } from "@/lib/auth-client";
@@ -47,6 +48,33 @@ const signUpDefaults: SignUpValues = {
   confirmPassword: "",
 };
 
+const passwordRuleText =
+  "Use at least 8 characters with uppercase, lowercase, number, and special character.";
+
+function validateStrongPassword(value: string) {
+  if (value.length < 8) {
+    return "Password must be at least 8 characters long.";
+  }
+
+  if (!/[A-Z]/.test(value)) {
+    return "Password must include an uppercase letter.";
+  }
+
+  if (!/[a-z]/.test(value)) {
+    return "Password must include a lowercase letter.";
+  }
+
+  if (!/\d/.test(value)) {
+    return "Password must include a number.";
+  }
+
+  if (!/[^A-Za-z0-9]/.test(value)) {
+    return "Password must include a special character.";
+  }
+
+  return "";
+}
+
 function getSignInErrors(values: SignInValues) {
   return {
     identifier: values.identifier.trim()
@@ -68,10 +96,7 @@ function getSignUpErrors(values: SignUpValues) {
     email: /\S+@\S+\.\S+/.test(values.email)
       ? ""
       : "Enter a valid email address.",
-    password:
-      values.password.length >= 8
-        ? ""
-        : "Password must be at least 8 characters long.",
+    password: validateStrongPassword(values.password),
     confirmPassword:
       values.confirmPassword === values.password && values.confirmPassword.length > 0
         ? ""
@@ -90,6 +115,8 @@ interface FieldProps {
   value: string;
   error?: string;
   autoComplete?: string;
+  minLength?: number;
+  required?: boolean;
   type?: React.HTMLInputTypeAttribute;
   onChange: (value: string) => void;
 }
@@ -99,8 +126,10 @@ function FormField({
   error,
   id,
   label,
+  minLength,
   onChange,
   placeholder,
+  required,
   type = "text",
   value,
 }: FieldProps) {
@@ -112,6 +141,8 @@ function FormField({
         type={type}
         value={value}
         autoComplete={autoComplete}
+        minLength={minLength}
+        required={required}
         placeholder={placeholder}
         className={cn(error && "border-[color:var(--color-danger)]")}
         onChange={(event) => onChange(event.target.value)}
@@ -129,11 +160,9 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
   const [mode, setMode] = React.useState<AuthMode>(initialMode);
   const [signInValues, setSignInValues] = React.useState(signInDefaults);
   const [signUpValues, setSignUpValues] = React.useState(signUpDefaults);
-  const [submitMessage, setSubmitMessage] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const {
     data: session,
-    error: sessionError,
     isPending: isSessionPending,
   } = authClient.useSession();
 
@@ -156,12 +185,14 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
     event.preventDefault();
 
     if (hasErrors(currentErrors)) {
-      setSubmitMessage("Please review the highlighted fields before continuing.");
+      const firstError = Object.values(currentErrors).find(Boolean);
+      toast.error("Please review the highlighted fields", {
+        description: firstError || "Complete the required fields before continuing.",
+      });
       return;
     }
 
     setIsSubmitting(true);
-    setSubmitMessage("");
 
     try {
       if (mode === "signin") {
@@ -177,11 +208,14 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
             });
 
         if (result.error) {
-          setSubmitMessage(result.error.message || "Unable to sign in with those credentials.");
+          toast.error("Unable to sign in", {
+            description:
+              result.error.message || "Please check your credentials and try again.",
+          });
           return;
         }
 
-        setSubmitMessage("Signed in successfully.");
+        toast.success("Signed in successfully");
         router.push("/dashboard");
         router.refresh();
         return;
@@ -195,14 +229,22 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
       });
 
       if (result.error) {
-        setSubmitMessage(result.error.message || "Unable to create your account.");
+        toast.error("Unable to create your account", {
+          description: result.error.message || "Please try again.",
+        });
         return;
       }
 
-      setSubmitMessage("Account created successfully. Please sign in.");
+      toast.success("Account created", {
+        description: "Please sign in with your new credentials.",
+      });
       setSignUpValues(signUpDefaults);
       router.push("/sign-in");
       router.refresh();
+    } catch (error) {
+      toast.error(mode === "signin" ? "Unable to sign in" : "Unable to create your account", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -224,15 +266,21 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
     <Card className="w-full max-w-xl">
       <CardHeader className="space-y-6">
         <div className="flex items-start justify-between gap-4">
-          <div className="inline-flex size-14 items-center justify-center rounded-2xl bg-[var(--color-primary-soft)] text-[var(--color-primary)] shadow-sm">
-            <BookMarked className="size-6" />
+          <div className="inline-flex size-14 items-center justify-center rounded-2xl border border-white/70 bg-white p-1.5 shadow-sm">
+            <Image
+              src="/pup-logo.png"
+              alt="Polytechnic University of the Philippines logo"
+              width={48}
+              height={48}
+              className="size-11 rounded-full object-cover"
+              priority
+            />
           </div>
           <div className="inline-flex rounded-full border border-[color:var(--color-border)] bg-[var(--color-muted)] p-1">
             <button
               type="button"
               onClick={() => {
                 setMode("signin");
-                setSubmitMessage("");
                 router.push("/sign-in");
               }}
               className={cn(
@@ -248,7 +296,6 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
               type="button"
               onClick={() => {
                 setMode("signup");
-                setSubmitMessage("");
                 router.push("/sign-up");
               }}
               className={cn(
@@ -274,7 +321,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <form className="space-y-5" onSubmit={handleSubmit}>
+        <form className="space-y-5" onSubmit={handleSubmit} noValidate>
           {mode === "signin" ? (
             <>
               <FormField
@@ -284,6 +331,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 autoComplete="username"
                 value={signInValues.identifier}
                 error={signInErrors.identifier}
+                required
                 onChange={(identifier) =>
                   setSignInValues((current) => ({ ...current, identifier }))
                 }
@@ -295,6 +343,8 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 placeholder="Enter your password"
                 autoComplete="current-password"
                 error={signInErrors.password}
+                required
+                minLength={8}
                 value={signInValues.password}
                 onChange={(event) =>
                   setSignInValues((current) => ({
@@ -313,6 +363,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 autoComplete="name"
                 value={signUpValues.fullName}
                 error={signUpErrors.fullName}
+                required
                 onChange={(fullName) =>
                   setSignUpValues((current) => ({ ...current, fullName }))
                 }
@@ -325,6 +376,8 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                   autoComplete="username"
                   value={signUpValues.username}
                   error={signUpErrors.username}
+                  required
+                  minLength={3}
                   onChange={(username) =>
                     setSignUpValues((current) => ({ ...current, username }))
                   }
@@ -337,6 +390,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                   type="email"
                   value={signUpValues.email}
                   error={signUpErrors.email}
+                  required
                   onChange={(email) =>
                     setSignUpValues((current) => ({ ...current, email }))
                   }
@@ -348,8 +402,12 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 label="Password"
                 placeholder="Create a secure password"
                 autoComplete="new-password"
-                hint="Minimum 8 characters"
+                hint={passwordRuleText}
                 error={signUpErrors.password}
+                required
+                minLength={8}
+                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                title={passwordRuleText}
                 value={signUpValues.password}
                 onChange={(event) =>
                   setSignUpValues((current) => ({
@@ -365,6 +423,8 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 placeholder="Re-enter your password"
                 autoComplete="new-password"
                 error={signUpErrors.confirmPassword}
+                required
+                minLength={8}
                 value={signUpValues.confirmPassword}
                 onChange={(event) =>
                   setSignUpValues((current) => ({
@@ -375,22 +435,6 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
               />
             </>
           )}
-
-          <div
-            className={cn(
-              "flex min-h-11 items-start gap-3 rounded-2xl border px-4 py-3 text-sm transition-colors",
-              submitMessage
-                ? "border-[color:var(--color-warning-border)] bg-[var(--color-warning-bg)] text-[var(--color-warning-foreground)]"
-                : "border-dashed border-[color:var(--color-border)] bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
-            )}
-            aria-live="polite"
-          >
-            <CircleAlert className="mt-0.5 size-4 shrink-0" />
-            <p>
-              {submitMessage ||
-                "Use your library credentials to sign in or create a new account."}
-            </p>
-          </div>
 
           <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
             {isSubmitting
