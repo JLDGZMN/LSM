@@ -182,11 +182,35 @@ function normalizeRequiredText(value: string, field: string) {
   return trimmed;
 }
 
+function normalizeLettersOnlyText(value: string, field: string) {
+  const normalized = normalizeRequiredText(value, field);
+
+  if (/\d/.test(normalized)) {
+    throw new Error(`${field} cannot contain numbers.`);
+  }
+
+  if (!/^[A-Za-z\s.'-]+$/.test(normalized)) {
+    throw new Error(`${field} can only contain letters and basic punctuation.`);
+  }
+
+  return normalized;
+}
+
 function normalizeStudentId(value: string) {
   const normalized = normalizeRequiredText(value, "Student ID");
 
   if (!/^\d{9}$/.test(normalized)) {
     throw new Error("Student ID must contain exactly 9 digits.");
+  }
+
+  return normalized;
+}
+
+function normalizeSection(value: string) {
+  const normalized = normalizeRequiredText(value, "Section");
+
+  if (!/^\d+$/.test(normalized)) {
+    throw new Error("Section must contain numbers only.");
   }
 
   return normalized;
@@ -538,9 +562,12 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
 
 export async function createBook(input: BookInput) {
   const normalizedTitle = normalizeRequiredText(input.title, "Title");
-  const normalizedAuthor = normalizeRequiredText(input.author, "Author");
+  const normalizedAuthor = normalizeLettersOnlyText(input.author, "Author");
   const normalizedIsbn = normalizeIsbn(input.isbn);
-  const normalizedPublisher = normalizeRequiredText(input.publisher ?? "", "Publisher");
+  const normalizedPublisher = normalizeLettersOnlyText(
+    input.publisher ?? "",
+    "Publisher",
+  );
   const publishedYear = normalizePublishedYear(input.publishedYear);
   const shelfLocation = normalizeRequiredText(
     input.shelfLocation ?? "",
@@ -592,9 +619,12 @@ export async function createBook(input: BookInput) {
 
 export async function updateBook(id: number, input: BookInput) {
   const normalizedTitle = normalizeRequiredText(input.title, "Title");
-  const normalizedAuthor = normalizeRequiredText(input.author, "Author");
+  const normalizedAuthor = normalizeLettersOnlyText(input.author, "Author");
   const normalizedIsbn = normalizeIsbn(input.isbn);
-  const normalizedPublisher = normalizeRequiredText(input.publisher ?? "", "Publisher");
+  const normalizedPublisher = normalizeLettersOnlyText(
+    input.publisher ?? "",
+    "Publisher",
+  );
   const publishedYear = normalizePublishedYear(input.publishedYear);
   const shelfLocation = normalizeRequiredText(
     input.shelfLocation ?? "",
@@ -674,10 +704,10 @@ export async function deleteBook(id: number) {
 }
 
 export async function createMember(input: MemberInput) {
-  const fullName = normalizeRequiredText(input.fullName, "Full name");
+  const fullName = normalizeLettersOnlyText(input.fullName, "Full name");
   const studentId = normalizeStudentId(input.studentId);
-  const course = normalizeRequiredText(input.course, "Course");
-  const section = normalizeRequiredText(input.section, "Section");
+  const course = normalizeLettersOnlyText(input.course, "Course");
+  const section = normalizeSection(input.section);
 
   const [result] = await promisePool.execute<ResultSetHeader>(
     `
@@ -701,10 +731,10 @@ export async function createMember(input: MemberInput) {
 }
 
 export async function updateMember(id: number, input: MemberInput) {
-  const fullName = normalizeRequiredText(input.fullName, "Full name");
+  const fullName = normalizeLettersOnlyText(input.fullName, "Full name");
   const studentId = normalizeStudentId(input.studentId);
-  const course = normalizeRequiredText(input.course, "Course");
-  const section = normalizeRequiredText(input.section, "Section");
+  const course = normalizeLettersOnlyText(input.course, "Course");
+  const section = normalizeSection(input.section);
 
   await promisePool.execute(
     `

@@ -103,6 +103,15 @@ const SHELF_LOCATION_OPTIONS = ["A", "B", "C", "D", "E"].flatMap((letter) =>
 
 const currentYear = new Date().getFullYear();
 
+function lettersOnly(value: string) {
+  return value.replace(/[^A-Za-z\s.'-]/g, "");
+}
+
+function digitsOnly(value: string, maxLength?: number) {
+  const digits = value.replace(/\D/g, "");
+  return typeof maxLength === "number" ? digits.slice(0, maxLength) : digits;
+}
+
 const emptyBookForm = (): BookFormValues => ({
   id: "",
   title: "",
@@ -257,6 +266,14 @@ function validateBookForm(values: BookFormValues) {
     return "ISBN must contain exactly 13 digits.";
   }
 
+  if (/\d/.test(values.author)) {
+    return "Author cannot contain numbers.";
+  }
+
+  if (/\d/.test(values.publisher)) {
+    return "Publisher cannot contain numbers.";
+  }
+
   const publishedYear = Number(values.publishedYear);
 
   if (
@@ -280,6 +297,38 @@ function validateBookForm(values: BookFormValues) {
 
   if (availableCopies > totalCopies) {
     return "Available copies cannot be greater than total copies.";
+  }
+
+  return "";
+}
+
+function validateMemberForm(values: MemberFormValues) {
+  if (!values.fullName.trim()) {
+    return "Full name is required.";
+  }
+
+  if (/\d/.test(values.fullName)) {
+    return "Full name cannot contain numbers.";
+  }
+
+  if (!/^\d{9}$/.test(values.studentId)) {
+    return "Student ID must contain exactly 9 digits.";
+  }
+
+  if (!values.course.trim()) {
+    return "Course is required.";
+  }
+
+  if (/\d/.test(values.course)) {
+    return "Course cannot contain numbers.";
+  }
+
+  if (!values.section.trim()) {
+    return "Section is required.";
+  }
+
+  if (!/^\d+$/.test(values.section)) {
+    return "Section must contain numbers only.";
   }
 
   return "";
@@ -605,6 +654,15 @@ export function LibraryDashboard({
 
   async function handleMemberSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const validationError = validateMemberForm(memberForm);
+
+    if (validationError) {
+      toast.error("Review member fields", {
+        description: validationError,
+      });
+      return;
+    }
 
     try {
       const endpoint = memberForm.id
@@ -1238,8 +1296,14 @@ export function LibraryDashboard({
                   <Input
                     value={bookForm.author}
                     onChange={(event) =>
-                      setBookForm((current) => ({ ...current, author: event.target.value }))
+                      setBookForm((current) => ({
+                        ...current,
+                        author: lettersOnly(event.target.value),
+                      }))
                     }
+                    inputMode="text"
+                    pattern="[A-Za-z\s.'-]+"
+                    title="Author cannot contain numbers."
                     required
                     placeholder="Thomas H. Cormen"
                   />
@@ -1250,7 +1314,7 @@ export function LibraryDashboard({
                     onChange={(event) =>
                       setBookForm((current) => ({
                         ...current,
-                        isbn: event.target.value.replace(/\D/g, "").slice(0, 13),
+                        isbn: digitsOnly(event.target.value, 13),
                       }))
                     }
                     inputMode="numeric"
@@ -1265,8 +1329,14 @@ export function LibraryDashboard({
                   <Input
                     value={bookForm.publisher}
                     onChange={(event) =>
-                      setBookForm((current) => ({ ...current, publisher: event.target.value }))
+                      setBookForm((current) => ({
+                        ...current,
+                        publisher: lettersOnly(event.target.value),
+                      }))
                     }
+                    inputMode="text"
+                    pattern="[A-Za-z\s.'-]+"
+                    title="Publisher cannot contain numbers."
                     required
                     placeholder="MIT Press"
                   />
@@ -1280,7 +1350,7 @@ export function LibraryDashboard({
                     onChange={(event) =>
                       setBookForm((current) => ({
                         ...current,
-                        publishedYear: event.target.value,
+                        publishedYear: digitsOnly(event.target.value, 4),
                       }))
                     }
                     required
@@ -1305,7 +1375,7 @@ export function LibraryDashboard({
                     onChange={(event) =>
                       setBookForm((current) => ({
                         ...current,
-                        totalCopies: event.target.value,
+                        totalCopies: digitsOnly(event.target.value),
                       }))
                     }
                     required
@@ -1319,7 +1389,7 @@ export function LibraryDashboard({
                     onChange={(event) =>
                       setBookForm((current) => ({
                         ...current,
-                        availableCopies: event.target.value,
+                        availableCopies: digitsOnly(event.target.value),
                       }))
                     }
                     required
@@ -1394,16 +1464,20 @@ export function LibraryDashboard({
                 ) : null}
               </div>
 
-              <form className="grid gap-4 md:grid-cols-2" onSubmit={handleMemberSubmit}>
+              <form className="grid gap-4 md:grid-cols-2" onSubmit={handleMemberSubmit} noValidate>
                 <Field label="Full Name">
                   <Input
                     value={memberForm.fullName}
                     onChange={(event) =>
                       setMemberForm((current) => ({
                         ...current,
-                        fullName: event.target.value,
+                        fullName: lettersOnly(event.target.value),
                       }))
                     }
+                    inputMode="text"
+                    pattern="[A-Za-z\s.'-]+"
+                    required
+                    title="Full name cannot contain numbers."
                     placeholder="Maria Santos"
                   />
                 </Field>
@@ -1413,12 +1487,13 @@ export function LibraryDashboard({
                     onChange={(event) =>
                       setMemberForm((current) => ({
                         ...current,
-                        studentId: event.target.value.replace(/\D/g, "").slice(0, 9),
+                        studentId: digitsOnly(event.target.value, 9),
                       }))
                     }
                     inputMode="numeric"
                     maxLength={9}
                     pattern="\d{9}"
+                    required
                     title="Student ID must contain exactly 9 digits."
                     placeholder="123456789"
                   />
@@ -1439,10 +1514,14 @@ export function LibraryDashboard({
                     onChange={(event) =>
                       setMemberForm((current) => ({
                         ...current,
-                        section: event.target.value,
+                        section: digitsOnly(event.target.value),
                       }))
                     }
-                    placeholder="BSIT 2A"
+                    inputMode="numeric"
+                    pattern="\d+"
+                    required
+                    title="Section must contain numbers only."
+                    placeholder="2"
                   />
                 </Field>
                 <div className="flex items-center gap-3 md:col-span-2">

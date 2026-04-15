@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { Check, X } from "lucide-react";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -51,6 +52,10 @@ const signUpDefaults: SignUpValues = {
 const passwordRuleText =
   "Use at least 8 characters with uppercase, lowercase, number, and special character.";
 
+function lettersOnly(value: string) {
+  return value.replace(/[^A-Za-z\s.'-]/g, "");
+}
+
 function validateStrongPassword(value: string) {
   if (value.length < 8) {
     return "Password must be at least 8 characters long.";
@@ -75,6 +80,29 @@ function validateStrongPassword(value: string) {
   return "";
 }
 
+const passwordRules = [
+  {
+    label: "At least 8 characters",
+    test: (value: string) => value.length >= 8,
+  },
+  {
+    label: "One uppercase letter",
+    test: (value: string) => /[A-Z]/.test(value),
+  },
+  {
+    label: "One lowercase letter",
+    test: (value: string) => /[a-z]/.test(value),
+  },
+  {
+    label: "One number",
+    test: (value: string) => /\d/.test(value),
+  },
+  {
+    label: "One special character",
+    test: (value: string) => /[^A-Za-z0-9]/.test(value),
+  },
+] as const;
+
 function getSignInErrors(values: SignInValues) {
   return {
     identifier: values.identifier.trim()
@@ -88,7 +116,11 @@ function getSignInErrors(values: SignInValues) {
 
 function getSignUpErrors(values: SignUpValues) {
   return {
-    fullName: values.fullName.trim() ? "" : "Enter your full name.",
+    fullName: values.fullName.trim()
+      ? /\d/.test(values.fullName)
+        ? "Full name cannot contain numbers."
+        : ""
+      : "Enter your full name.",
     username:
       values.username.trim().length >= 3
         ? ""
@@ -116,7 +148,9 @@ interface FieldProps {
   error?: string;
   autoComplete?: string;
   minLength?: number;
+  pattern?: string;
   required?: boolean;
+  title?: string;
   type?: React.HTMLInputTypeAttribute;
   onChange: (value: string) => void;
 }
@@ -128,8 +162,10 @@ function FormField({
   label,
   minLength,
   onChange,
+  pattern,
   placeholder,
   required,
+  title,
   type = "text",
   value,
 }: FieldProps) {
@@ -142,11 +178,51 @@ function FormField({
         value={value}
         autoComplete={autoComplete}
         minLength={minLength}
+        pattern={pattern}
         required={required}
+        title={title}
         placeholder={placeholder}
         className={cn(error && "border-[color:var(--color-danger)]")}
         onChange={(event) => onChange(event.target.value)}
       />
+    </div>
+  );
+}
+
+function PasswordChecklist({ value }: { value: string }) {
+  return (
+    <div
+      className="grid gap-2 rounded-2xl border border-[color:var(--color-border)] bg-[var(--color-muted)] px-4 py-3"
+      aria-live="polite"
+    >
+      {passwordRules.map((rule) => {
+        const passed = rule.test(value);
+
+        return (
+          <div
+            key={rule.label}
+            className={cn(
+              "flex items-center gap-2 text-sm transition-colors",
+              passed
+                ? "text-emerald-700"
+                : "text-[var(--color-muted-foreground)]",
+            )}
+          >
+            <span
+              className={cn(
+                "flex size-5 shrink-0 items-center justify-center rounded-full border",
+                passed
+                  ? "border-emerald-200 bg-emerald-50"
+                  : "border-[color:var(--color-border)] bg-white/80",
+              )}
+              aria-hidden="true"
+            >
+              {passed ? <Check className="size-3.5" /> : <X className="size-3.5" />}
+            </span>
+            <span>{rule.label}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -364,8 +440,12 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 value={signUpValues.fullName}
                 error={signUpErrors.fullName}
                 required
+                pattern="[A-Za-z\s.'-]+"
                 onChange={(fullName) =>
-                  setSignUpValues((current) => ({ ...current, fullName }))
+                  setSignUpValues((current) => ({
+                    ...current,
+                    fullName: lettersOnly(fullName),
+                  }))
                 }
               />
               <div className="grid gap-5 sm:grid-cols-2">
@@ -416,6 +496,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                   }))
                 }
               />
+              <PasswordChecklist value={signUpValues.password} />
               <PasswordField
                 id="confirm-password"
                 name="confirmPassword"
