@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm --prefix \"Cereal Directory\" run dev",
-    "build": "npm --prefix \"Cereal Directory\" run build",
-    "start": "npm --prefix \"Cereal Directory\" run start",
-    "lint": "npm --prefix \"Cereal Directory\" run lint",
-    "auth:migrate": "npm --prefix \"Cereal Directory\" run auth:migrate",
-    "db:migrate": "npm --prefix \"Cereal Directory\" run db:migrate"
+    "dev": "npm --prefix cereal-directory run dev",
+    "build": "npm --prefix cereal-directory run build",
+    "start": "npm --prefix cereal-directory run start",
+    "lint": "npm --prefix cereal-directory run lint",
+    "auth:migrate": "npm --prefix cereal-directory run auth:migrate",
+    "db:migrate": "npm --prefix cereal-directory run db:migrate"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",

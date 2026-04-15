@@ -1,8 +1,8 @@
 node_modules/
 
 # Nested app artifacts
-Cereal Directory/.next/
-Cereal Directory/node_modules/
+cereal-directory/.next/
+cereal-directory/node_modules/
 
 # Common local env and logs
 .env*
