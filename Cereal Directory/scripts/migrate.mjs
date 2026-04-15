@@ -35,7 +35,6 @@ function loadEnvFile(filePath) {
 }
 
 loadEnvFile(path.join(appRoot, ".env"));
-loadEnvFile(path.join(path.resolve(appRoot, ".."), ".env"));
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is required to run migrations.");
