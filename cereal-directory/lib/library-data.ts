@@ -160,16 +160,57 @@ type BorrowResultRow = RowDataPacket & {
   createdAt: Date | string;
 };
 
-function toIso(value: Date | string | null) {
+function padDatePart(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function parseLocalDateTime(value: Date | string) {
+  if (value instanceof Date) {
+    return value;
+  }
+
+  const normalized = value.trim().replace(" ", "T");
+  const match = normalized.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/,
+  );
+
+  if (match) {
+    const [, year, month, day, hour, minute, second = "00"] = match;
+    return new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second),
+    );
+  }
+
+  return new Date(value);
+}
+
+function toLocalDateTimeString(value: Date | string | null) {
   if (!value) {
     return null;
   }
 
-  if (value instanceof Date) {
-    return value.toISOString();
+  const date = parseLocalDateTime(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
   }
 
-  return new Date(value).toISOString();
+  return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}T${padDatePart(date.getHours())}:${padDatePart(date.getMinutes())}:${padDatePart(date.getSeconds())}`;
+}
+
+function toDatabaseDateTime(value: Date | string) {
+  const normalized = toLocalDateTimeString(value);
+
+  if (!normalized) {
+    throw new Error("Invalid date value.");
+  }
+
+  return normalized.replace("T", " ");
 }
 
 function normalizeText(value: string | null | undefined) {
@@ -264,7 +305,7 @@ function normalizeRecordId(value: number, field: string) {
 }
 
 function isPastDue(value: Date | string) {
-  const date = value instanceof Date ? value : new Date(value);
+  const date = parseLocalDateTime(value);
 
   if (Number.isNaN(date.getTime())) {
     return false;
@@ -464,7 +505,7 @@ export async function listBooks(): Promise<BookRow[]> {
     totalCopies: row.totalCopies,
     availableCopies: row.availableCopies,
     status: getBookStatus(row.totalCopies, row.availableCopies),
-    createdAt: toIso(row.createdAt) ?? new Date(0).toISOString(),
+    createdAt: toLocalDateTimeString(row.createdAt) ?? "1970-01-01T00:00:00",
   }));
 }
 
@@ -489,7 +530,7 @@ export async function listMembers(): Promise<MemberRow[]> {
     studentId: row.studentId,
     course: row.course,
     section: row.section,
-    createdAt: toIso(row.createdAt) ?? new Date(0).toISOString(),
+    createdAt: toLocalDateTimeString(row.createdAt) ?? "1970-01-01T00:00:00",
   }));
 }
 
@@ -524,16 +565,14 @@ export async function listBorrowTransactions(): Promise<BorrowTransactionRow[]> 
     memberId: row.memberId,
     issuedByUserId: row.issuedByUserId,
     returnedToUserId: row.returnedToUserId,
-    borrowedAt: toIso(row.borrowedAt) ?? new Date(0).toISOString(),
-    dueAt: toIso(row.dueAt) ?? new Date(0).toISOString(),
-    returnedAt: toIso(row.returnedAt),
+    borrowedAt: toLocalDateTimeString(row.borrowedAt) ?? "1970-01-01T00:00:00",
+    dueAt: toLocalDateTimeString(row.dueAt) ?? "1970-01-01T00:00:00",
+    returnedAt: toLocalDateTimeString(row.returnedAt),
     status: deriveBorrowStatus(
       row.status,
-      row.dueAt instanceof Date ? row.dueAt : new Date(row.dueAt),
+      parseLocalDateTime(row.dueAt),
       row.returnedAt
-        ? row.returnedAt instanceof Date
-          ? row.returnedAt
-          : new Date(row.returnedAt)
+        ? parseLocalDateTime(row.returnedAt)
         : null,
     ),
     notes: row.notes,
@@ -542,7 +581,7 @@ export async function listBorrowTransactions(): Promise<BorrowTransactionRow[]> 
     bookPublisher: row.bookPublisher,
     memberName: row.memberName,
     memberStudentId: row.memberStudentId,
-    createdAt: toIso(row.createdAt) ?? new Date(0).toISOString(),
+    createdAt: toLocalDateTimeString(row.createdAt) ?? "1970-01-01T00:00:00",
   }));
 }
 
@@ -791,7 +830,7 @@ export async function createBorrowTransaction(input: BorrowTransactionInput) {
   const bookId = normalizeRecordId(input.bookId, "Book");
   const memberId = normalizeRecordId(input.memberId, "Member");
 
-  const borrowedAt = input.borrowedAt ? new Date(input.borrowedAt) : new Date();
+  const borrowedAt = input.borrowedAt ? parseLocalDateTime(input.borrowedAt) : new Date();
 
   if (Number.isNaN(borrowedAt.getTime())) {
     throw new Error("Borrowed date is invalid.");
@@ -802,7 +841,7 @@ export async function createBorrowTransaction(input: BorrowTransactionInput) {
   const requestedStatus = input.status;
   const returnedAt =
     input.returnedAt
-      ? new Date(input.returnedAt)
+      ? parseLocalDateTime(input.returnedAt)
       : requestedStatus === "returned"
         ? new Date()
         : null;
@@ -854,9 +893,9 @@ export async function createBorrowTransaction(input: BorrowTransactionInput) {
         memberId,
         input.issuedByUserId,
         resolvedStatus === "returned" ? input.returnedToUserId : null,
-        borrowedAt,
-        dueAt,
-        returnedAt,
+        toDatabaseDateTime(borrowedAt),
+        toDatabaseDateTime(dueAt),
+        returnedAt ? toDatabaseDateTime(returnedAt) : null,
         resolvedStatus,
         normalizeText(input.notes),
       ],
@@ -889,7 +928,7 @@ export async function updateBorrowTransaction(
   const bookId = normalizeRecordId(input.bookId, "Book");
   const memberId = normalizeRecordId(input.memberId, "Member");
 
-  const borrowedAt = input.borrowedAt ? new Date(input.borrowedAt) : new Date();
+  const borrowedAt = input.borrowedAt ? parseLocalDateTime(input.borrowedAt) : new Date();
 
   if (Number.isNaN(borrowedAt.getTime())) {
     throw new Error("Borrowed date is invalid.");
@@ -900,7 +939,7 @@ export async function updateBorrowTransaction(
   const requestedStatus = input.status;
   const returnedAt =
     input.returnedAt
-      ? new Date(input.returnedAt)
+      ? parseLocalDateTime(input.returnedAt)
       : requestedStatus === "returned"
         ? new Date()
         : null;
@@ -975,9 +1014,9 @@ export async function updateBorrowTransaction(
         memberId,
         input.issuedByUserId,
         resolvedStatus === "returned" ? input.returnedToUserId : null,
-        borrowedAt,
-        dueAt,
-        returnedAt,
+        toDatabaseDateTime(borrowedAt),
+        toDatabaseDateTime(dueAt),
+        returnedAt ? toDatabaseDateTime(returnedAt) : null,
         resolvedStatus,
         normalizeText(input.notes),
         id,

@@ -19,6 +19,7 @@ const pool =
   createPool({
     uri: connectionString,
     connectionLimit: 10,
+    dateStrings: true,
   });
 const promisePool = globalThis.__libraryPromisePool ?? pool.promise();
 

@@ -169,7 +169,7 @@ function addSchoolDaysFromLocalDateTime(value: string, schoolDays: number) {
     return "";
   }
 
-  const startDate = new Date(value);
+  const startDate = parseDateTimeLocal(value);
 
   if (Number.isNaN(startDate.getTime())) {
     return "";
@@ -187,34 +187,63 @@ function addSchoolDaysFromLocalDateTime(value: string, schoolDays: number) {
     }
   }
 
-  return toDateTimeLocal(result.toISOString());
+  return formatDateTimeLocalInput(result);
 }
 
 const emptyTransactionForm = (): TransactionFormValues => ({
   id: "",
   bookId: "",
   memberId: "",
-  borrowedAt: toDateTimeLocal(new Date().toISOString()),
-  dueAt: addSchoolDaysFromLocalDateTime(toDateTimeLocal(new Date().toISOString()), 5),
+  borrowedAt: formatDateTimeLocalInput(new Date()),
+  dueAt: addSchoolDaysFromLocalDateTime(formatDateTimeLocalInput(new Date()), 5),
   returnedAt: "",
   status: "borrowed",
   notes: "",
 });
+
+function parseDateTimeLocal(value: string) {
+  const normalized = value.trim().replace(" ", "T");
+  const match = normalized.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/,
+  );
+
+  if (match) {
+    const [, year, month, day, hour, minute, second = "00"] = match;
+    return new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second),
+    );
+  }
+
+  return new Date(value);
+}
+
+function formatDateTimeLocalInput(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hour = String(date.getHours()).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(2, "0");
+
+  return `${year}-${month}-${day}T${hour}:${minute}`;
+}
 
 function toDateTimeLocal(value: string | null) {
   if (!value) {
     return "";
   }
 
-  const date = new Date(value);
+  const date = parseDateTimeLocal(value);
 
   if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  const offset = date.getTimezoneOffset();
-  const local = new Date(date.getTime() - offset * 60_000);
-  return local.toISOString().slice(0, 16);
+  return formatDateTimeLocalInput(date);
 }
 
 function toReadableDate(value: string | null) {
@@ -226,7 +255,7 @@ function toReadableDate(value: string | null) {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(value));
+  }).format(parseDateTimeLocal(value));
 }
 
 function toReadableDateTime(value: string | null) {
@@ -240,7 +269,7 @@ function toReadableDateTime(value: string | null) {
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(new Date(value));
+  }).format(parseDateTimeLocal(value));
 }
 
 function escapeHtml(value: string) {
@@ -253,13 +282,13 @@ function escapeHtml(value: string) {
 }
 
 function getOverdueDays(dueAt: string, returnedAt?: string | null) {
-  const dueDate = new Date(dueAt);
+  const dueDate = parseDateTimeLocal(dueAt);
 
   if (Number.isNaN(dueDate.getTime())) {
     return 0;
   }
 
-  const comparisonDate = returnedAt ? new Date(returnedAt) : new Date();
+  const comparisonDate = returnedAt ? parseDateTimeLocal(returnedAt) : new Date();
 
   if (Number.isNaN(comparisonDate.getTime())) {
     return 0;
@@ -384,7 +413,7 @@ function validateTransactionForm(values: TransactionFormValues) {
     return "Borrowed date is required.";
   }
 
-  const borrowedAt = new Date(values.borrowedAt);
+  const borrowedAt = parseDateTimeLocal(values.borrowedAt);
 
   if (Number.isNaN(borrowedAt.getTime())) {
     return "Borrowed date is invalid.";
@@ -395,7 +424,7 @@ function validateTransactionForm(values: TransactionFormValues) {
       return "Returned date is required for returned records.";
     }
 
-    const returnedAt = new Date(values.returnedAt);
+    const returnedAt = parseDateTimeLocal(values.returnedAt);
 
     if (Number.isNaN(returnedAt.getTime())) {
       return "Returned date is invalid.";
@@ -1130,6 +1159,11 @@ export function LibraryDashboard({
         <p class="label">Notes</p>
         <p class="value">${notes}</p>
       </section>
+      <section class="item notes">
+        <p class="label">Reminder</p>
+        <p class="value">Books must be returned on or before the due date.</p>
+        <p class="value">Overdue items will be subject to daily penalties until returned.</p>
+      </section>
     </main>
     <script>
       window.onload = function() {
@@ -1408,16 +1442,6 @@ export function LibraryDashboard({
             size="icon"
             variant="outline"
             className="size-9"
-            aria-label={`Print borrow slip for ${row.original.memberName}`}
-            title="Print slip"
-            onClick={() => printBorrowReceipt(row.original)}
-          >
-            <Printer className="size-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            className="size-9"
             aria-label={`Edit borrow record for ${row.original.bookTitle} and ${row.original.memberName}`}
             title="Edit borrow record"
             onClick={() => beginEditTransaction(row.original)}
@@ -1612,6 +1636,15 @@ export function LibraryDashboard({
                 <p className="mt-2 text-base font-medium text-[var(--color-foreground)]">
                   {selectedTransaction.notes?.trim() || "No notes provided."}
                 </p>
+                <div className="mt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => printBorrowReceipt(selectedTransaction)}
+                  >
+                    <Printer className="size-4" />
+                    Print Receipt
+                  </Button>
+                </div>
               </article>
             </div>
           </div>
@@ -1863,7 +1896,7 @@ export function LibraryDashboard({
                     pattern="[A-Za-z\s.'-]+"
                     required
                     title="Full name cannot contain numbers."
-                    placeholder="Maria Santos"
+                    placeholder="Juan Dela Cruz"
                   />
                 </Field>
                 <Field label="Student ID">
