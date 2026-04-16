@@ -616,6 +616,9 @@ export function LibraryDashboard({
   const [printableTransactionId, setPrintableTransactionId] = React.useState<number | null>(
     null,
   );
+  const [activeSubmitAction, setActiveSubmitAction] = React.useState<
+    "book" | "member" | "transaction" | null
+  >(null);
   const [isPending, startTransition] = React.useTransition();
 
   React.useEffect(() => {
@@ -711,6 +714,8 @@ export function LibraryDashboard({
       return;
     }
 
+    setActiveSubmitAction("book");
+
     try {
       const payload = {
         categoryId: null,
@@ -743,6 +748,8 @@ export function LibraryDashboard({
       toast.error("Unable to save book", {
         description: error instanceof Error ? error.message : "Please try again.",
       });
+    } finally {
+      setActiveSubmitAction(null);
     }
   }
 
@@ -757,6 +764,8 @@ export function LibraryDashboard({
       });
       return;
     }
+
+    setActiveSubmitAction("member");
 
     try {
       const endpoint = memberForm.id
@@ -779,6 +788,8 @@ export function LibraryDashboard({
       toast.error("Unable to save member", {
         description: error instanceof Error ? error.message : "Please try again.",
       });
+    } finally {
+      setActiveSubmitAction(null);
     }
   }
 
@@ -793,6 +804,8 @@ export function LibraryDashboard({
       });
       return;
     }
+
+    setActiveSubmitAction("transaction");
 
     try {
       const endpoint = transactionForm.id
@@ -827,6 +840,8 @@ export function LibraryDashboard({
       toast.error("Unable to save borrow record", {
         description: error instanceof Error ? error.message : "Please try again.",
       });
+    } finally {
+      setActiveSubmitAction(null);
     }
   }
 
@@ -917,14 +932,33 @@ export function LibraryDashboard({
   }
 
   function printBorrowReceipt(transaction: BorrowTransactionRow) {
-    const receiptWindow = window.open("", "_blank", "noopener,noreferrer,width=900,height=700");
+    const existingFrame = document.getElementById(
+      "borrow-receipt-print-frame",
+    ) as HTMLIFrameElement | null;
+    const receiptFrame = existingFrame ?? document.createElement("iframe");
+
+    if (!existingFrame) {
+      receiptFrame.id = "borrow-receipt-print-frame";
+      receiptFrame.style.position = "fixed";
+      receiptFrame.style.right = "0";
+      receiptFrame.style.bottom = "0";
+      receiptFrame.style.width = "0";
+      receiptFrame.style.height = "0";
+      receiptFrame.style.border = "0";
+      receiptFrame.setAttribute("aria-hidden", "true");
+      document.body.appendChild(receiptFrame);
+    }
+
+    const receiptWindow = receiptFrame.contentWindow;
 
     if (!receiptWindow) {
-      toast.error("Unable to open print preview", {
-        description: "Please allow pop-ups for this site and try again.",
+      toast.error("Unable to prepare print view", {
+        description: "Please try printing the receipt again.",
       });
       return;
     }
+
+    const receiptDocument = receiptWindow.document;
 
     const notes = escapeHtml(transaction.notes?.trim() || "No notes provided.");
     const publisher = escapeHtml(transaction.bookPublisher?.trim() || "N/A");
@@ -934,7 +968,8 @@ export function LibraryDashboard({
     const bookAuthor = escapeHtml(transaction.bookAuthor);
     const status = escapeHtml(transaction.status);
 
-    receiptWindow.document.write(`<!DOCTYPE html>
+    receiptDocument.open();
+    receiptDocument.write(`<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -1098,15 +1133,15 @@ export function LibraryDashboard({
     </main>
     <script>
       window.onload = function() {
-        window.print();
-        window.onafterprint = function() {
-          window.close();
-        };
+        setTimeout(function() {
+          window.focus();
+          window.print();
+        }, 150);
       };
     </script>
   </body>
 </html>`);
-    receiptWindow.document.close();
+    receiptDocument.close();
   }
 
   const filteredBooks = books.filter((book) => {
@@ -1740,9 +1775,15 @@ export function LibraryDashboard({
                   />
                 </Field>
                 <div className="flex items-center gap-3 md:col-span-2 xl:col-span-3">
-                  <Button type="submit" disabled={isPending}>
+                  <Button type="submit" disabled={isPending || activeSubmitAction === "book"}>
                     <Plus className="size-4" />
-                    {bookForm.id ? "Update Book" : "Add Book"}
+                    {activeSubmitAction === "book"
+                      ? bookForm.id
+                        ? "Updating Book..."
+                        : "Adding Book..."
+                      : bookForm.id
+                        ? "Update Book"
+                        : "Add Book"}
                   </Button>
                   {bookForm.id ? (
                     <Button
@@ -1866,9 +1907,18 @@ export function LibraryDashboard({
                   />
                 </Field>
                 <div className="flex items-center gap-3 md:col-span-2">
-                  <Button type="submit" disabled={isPending}>
+                  <Button
+                    type="submit"
+                    disabled={isPending || activeSubmitAction === "member"}
+                  >
                     <Plus className="size-4" />
-                    {memberForm.id ? "Update Member" : "Add Member"}
+                    {activeSubmitAction === "member"
+                      ? memberForm.id
+                        ? "Updating Member..."
+                        : "Adding Member..."
+                      : memberForm.id
+                        ? "Update Member"
+                        : "Add Member"}
                   </Button>
                   {memberForm.id ? (
                     <Button
@@ -2059,9 +2109,18 @@ export function LibraryDashboard({
                   </Field>
                 </div>
                 <div className="flex items-center gap-3 xl:col-span-3 md:col-span-2">
-                  <Button type="submit" disabled={isPending}>
+                  <Button
+                    type="submit"
+                    disabled={isPending || activeSubmitAction === "transaction"}
+                  >
                     <Plus className="size-4" />
-                    {transactionForm.id ? "Update Record" : "Create Record"}
+                    {activeSubmitAction === "transaction"
+                      ? transactionForm.id
+                        ? "Updating Record..."
+                        : "Creating Record..."
+                      : transactionForm.id
+                        ? "Update Record"
+                        : "Create Record"}
                   </Button>
                   {transactionForm.id ? (
                     <Button
