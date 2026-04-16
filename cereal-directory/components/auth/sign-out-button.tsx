@@ -11,6 +11,10 @@ export function SignOutButton() {
   return (
     <Button
       onClick={async () => {
+        if (!window.confirm("Are you sure you want to sign out?")) {
+          return;
+        }
+
         await authClient.signOut();
         router.push("/");
         router.refresh();

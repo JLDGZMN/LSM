@@ -57,7 +57,7 @@ export function PasswordField({
           onClick={() => setVisible((current) => !current)}
           aria-label={visible ? "Hide password" : "Show password"}
         >
-          {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          {visible ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
         </Button>
       </div>
       {error ? (

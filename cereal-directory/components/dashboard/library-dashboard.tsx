@@ -642,9 +642,6 @@ export function LibraryDashboard({
   const [transactionStatusFilter, setTransactionStatusFilter] = React.useState("all");
   const [selectedTransaction, setSelectedTransaction] =
     React.useState<BorrowTransactionRow | null>(null);
-  const [printableTransactionId, setPrintableTransactionId] = React.useState<number | null>(
-    null,
-  );
   const [activeSubmitAction, setActiveSubmitAction] = React.useState<
     "book" | "member" | "transaction" | null
   >(null);
@@ -724,7 +721,6 @@ export function LibraryDashboard({
       status: transaction.status,
       notes: transaction.notes ?? "",
     });
-    setPrintableTransactionId(transaction.id);
     setActiveTab("borrowTransactions");
     toast("Editing borrow record", {
       description: `${transaction.bookTitle} for ${transaction.memberName}.`,
@@ -847,18 +843,10 @@ export function LibraryDashboard({
       });
       const nextTransactions = response.data;
       const nextBooksPayload = await requestJson<ResourceResponse<BookRow>>("/api/library/books");
-      const nextPrintableTransaction =
-        transactionForm.id
-          ? nextTransactions.find(
-              (transaction) => transaction.id === Number(transactionForm.id),
-            ) ?? null
-          : nextTransactions[0] ?? null;
-
       startTransition(() => {
         setBorrowTransactions(nextTransactions);
         setBooks(nextBooksPayload.data);
         refreshStats(nextBooksPayload.data, members, nextTransactions);
-        setPrintableTransactionId(nextPrintableTransaction?.id ?? null);
         setTransactionForm(emptyTransactionForm());
       });
 
@@ -1214,9 +1202,6 @@ export function LibraryDashboard({
 
   const selectedTransactionRecord = transactionForm.id
     ? borrowTransactions.find((transaction) => transaction.id === Number(transactionForm.id)) ?? null
-    : null;
-  const printableTransaction = printableTransactionId
-    ? borrowTransactions.find((transaction) => transaction.id === printableTransactionId) ?? null
     : null;
   const availableBookOptions = books.filter(
     (book) =>
@@ -2089,28 +2074,13 @@ export function LibraryDashboard({
                     }
                   />
                 </Field>
-                <div className="space-y-2">
-                  <Label>Due At</Label>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <Input
-                      type="datetime-local"
-                      value={transactionForm.dueAt}
-                      disabled
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="shrink-0"
-                      disabled={!printableTransaction}
-                      onClick={() =>
-                        printableTransaction && printBorrowReceipt(printableTransaction)
-                      }
-                    >
-                      <Printer className="size-4" />
-                      Print
-                    </Button>
-                  </div>
-                </div>
+                <Field label="Due At">
+                  <Input
+                    type="datetime-local"
+                    value={transactionForm.dueAt}
+                    disabled
+                  />
+                </Field>
                 {transactionForm.id && transactionForm.status === "returned" ? (
                   <Field label="Returned At">
                     <Input
