@@ -53,7 +53,10 @@ export type BorrowTransactionRow = {
   status: BorrowStatus;
   notes: string | null;
   bookTitle: string;
+  bookAuthor: string;
+  bookPublisher: string | null;
   memberName: string;
+  memberStudentId: string;
   createdAt: string;
 };
 
@@ -150,7 +153,10 @@ type BorrowResultRow = RowDataPacket & {
   status: BorrowStatus;
   notes: string | null;
   bookTitle: string;
+  bookAuthor: string;
+  bookPublisher: string | null;
   memberName: string;
+  memberStudentId: string;
   createdAt: Date | string;
 };
 
@@ -206,13 +212,7 @@ function normalizeStudentId(value: string) {
 }
 
 function normalizeSection(value: string) {
-  const normalized = normalizeRequiredText(value, "Section");
-
-  if (!/^\d+$/.test(normalized)) {
-    throw new Error("Section must contain numbers only.");
-  }
-
-  return normalized;
+  return normalizeRequiredText(value, "Section");
 }
 
 function normalizeIsbn(value: string | null | undefined) {
@@ -342,7 +342,7 @@ function getBookStatus(totalCopies: number, availableCopies: number) {
     return "unavailable";
   }
 
-  if (availableCopies <= Math.max(1, Math.floor(totalCopies / 3))) {
+  if (availableCopies <= 3) {
     return "low_stock";
   }
 
@@ -463,7 +463,7 @@ export async function listBooks(): Promise<BookRow[]> {
     shelfLocation: row.shelfLocation,
     totalCopies: row.totalCopies,
     availableCopies: row.availableCopies,
-    status: row.status,
+    status: getBookStatus(row.totalCopies, row.availableCopies),
     createdAt: toIso(row.createdAt) ?? new Date(0).toISOString(),
   }));
 }
@@ -508,7 +508,10 @@ export async function listBorrowTransactions(): Promise<BorrowTransactionRow[]> 
       borrow_transactions.notes,
       borrow_transactions.created_at AS createdAt,
       books.title AS bookTitle,
-      members.full_name AS memberName
+      books.author AS bookAuthor,
+      books.publisher AS bookPublisher,
+      members.full_name AS memberName,
+      members.student_id AS memberStudentId
     FROM borrow_transactions
     INNER JOIN books ON books.id = borrow_transactions.book_id
     INNER JOIN members ON members.id = borrow_transactions.member_id
@@ -535,7 +538,10 @@ export async function listBorrowTransactions(): Promise<BorrowTransactionRow[]> 
     ),
     notes: row.notes,
     bookTitle: row.bookTitle,
+    bookAuthor: row.bookAuthor,
+    bookPublisher: row.bookPublisher,
     memberName: row.memberName,
+    memberStudentId: row.memberStudentId,
     createdAt: toIso(row.createdAt) ?? new Date(0).toISOString(),
   }));
 }

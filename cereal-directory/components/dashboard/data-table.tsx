@@ -4,9 +4,11 @@ import * as React from "react";
 import {
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  type PaginationState,
   type SortingState,
 } from "@tanstack/react-table";
 
@@ -24,6 +26,17 @@ export function DataTable<TData>({
   emptyMessage,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 7,
+  });
+
+  React.useEffect(() => {
+    setPagination((current) => ({
+      ...current,
+      pageIndex: 0,
+    }));
+  }, [data]);
 
   // TanStack Table owns its internal memoization; React Compiler flags this known pattern.
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -32,11 +45,17 @@ export function DataTable<TData>({
     columns,
     state: {
       sorting,
+      pagination,
     },
     onSortingChange: setSorting,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   });
+
+  const totalPages = Math.max(1, table.getPageCount());
+  const currentPage = table.getState().pagination.pageIndex + 1;
 
   return (
     <div className="overflow-hidden rounded-[24px] border border-white/70 bg-white/92 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
@@ -98,6 +117,29 @@ export function DataTable<TData>({
             )}
           </tbody>
         </table>
+      </div>
+      <div className="flex flex-col gap-3 border-t border-[color:var(--color-border)]/70 bg-white/80 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-[var(--color-muted-foreground)]">
+          Page {currentPage} of {totalPages}
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-white px-4 text-sm font-medium text-[var(--color-foreground)] transition hover:bg-[var(--color-muted)] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <button
+            type="button"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-white px-4 text-sm font-medium text-[var(--color-foreground)] transition hover:bg-[var(--color-muted)] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

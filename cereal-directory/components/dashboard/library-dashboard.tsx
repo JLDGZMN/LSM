@@ -2,7 +2,16 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { ChevronDown, Eye, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import {
+  ChevronDown,
+  Eye,
+  Pencil,
+  Plus,
+  Printer,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -75,26 +84,49 @@ const tabLabels: Record<TabKey, string> = {
 const PENALTY_PER_DAY = 5;
 
 const COURSE_OPTIONS = [
-  "BS Accountancy",
-  "BS Architecture",
-  "BS Biology",
-  "BS Business Administration",
-  "BS Civil Engineering",
-  "BS Computer Science",
-  "BS Criminology",
-  "BS Education",
-  "BS Electrical Engineering",
-  "BS Entrepreneurship",
-  "BS Hospitality Management",
-  "BS Information Systems",
-  "BS Information Technology",
-  "BS Mathematics",
-  "BS Mechanical Engineering",
-  "BS Medical Technology",
-  "BS Nursing",
-  "BS Pharmacy",
-  "BS Psychology",
-  "BS Tourism Management",
+"BS Accounting Information System",
+"BS Agribusiness",
+"BS Agricultural Engineering",
+"BS Applied Mathematics",
+"BS Biochemistry",
+"BS Chemical Engineering",
+"BS Chemistry",
+"BS Commerce",
+"BS Community Development",
+"BS Customs Administration",
+"BS Data Science",
+"BS Economics",
+"BS Environmental Science",
+"BS Food Technology",
+"BS Forestry",
+"BS Geology",
+"BS Hotel and Restaurant Management",
+"BS Industrial Engineering",
+"BS Interior Design",
+"BS International Studies",
+"BS Legal Management",
+"BS Library and Information Science",
+"BS Management Accounting",
+"BS Marine Biology",
+"BS Marine Engineering",
+"BS Marketing Management",
+"BS Mass Communication",
+"BS Multimedia Arts",
+"BS Nutrition and Dietetics",
+"BS Office Administration",
+"BS Physical Therapy",
+"BS Physics",
+"BS Political Science",
+"BS Public Administration",
+"BS Real Estate Management",
+"BS Secondary Education",
+"BS Social Work",
+"BS Statistics",
+"BS Supply Chain Management",
+"BS Tourism",
+"BS Radiologic Technology",
+"BS Electronics Engineering",
+"BS Mechatronics Engineering",
 ] as const;
 
 const SHELF_LOCATION_OPTIONS = ["A", "B", "C", "D", "E"].flatMap((letter) =>
@@ -211,6 +243,15 @@ function toReadableDateTime(value: string | null) {
   }).format(new Date(value));
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function getOverdueDays(dueAt: string, returnedAt?: string | null) {
   const dueDate = new Date(dueAt);
 
@@ -325,10 +366,6 @@ function validateMemberForm(values: MemberFormValues) {
 
   if (!values.section.trim()) {
     return "Section is required.";
-  }
-
-  if (!/^\d+$/.test(values.section)) {
-    return "Section must contain numbers only.";
   }
 
   return "";
@@ -465,19 +502,30 @@ function Field({
   );
 }
 
+type SelectOption = {
+  value: string;
+  label: string;
+};
+
 function OptionSelect({
   value,
   onChange,
   options,
   placeholder,
+  maxVisibleItems = 6,
 }: {
   value: string;
   onChange: (value: string) => void;
-  options: readonly string[];
+  options: readonly (string | SelectOption)[];
   placeholder: string;
+  maxVisibleItems?: number;
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const normalizedOptions = options.map((option) =>
+    typeof option === "string" ? { value: option, label: option } : option,
+  );
+  const selectedOption = normalizedOptions.find((option) => option.value === value);
 
   React.useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
@@ -498,7 +546,7 @@ function OptionSelect({
         className="flex h-11 w-full items-center justify-between rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm text-left"
       >
         <span className={cn(!value && "text-[var(--color-muted-foreground)]")}>
-          {value || placeholder}
+          {selectedOption?.label || placeholder}
         </span>
         <ChevronDown
           className={cn(
@@ -510,21 +558,25 @@ function OptionSelect({
 
       {isOpen ? (
         <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-[color:var(--color-border)] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
-          <div className="max-h-[220px] overflow-y-auto py-1">
-            {options.map((option) => (
+          <div
+            className="overflow-y-auto py-1"
+            style={{ maxHeight: `${maxVisibleItems * 40}px` }}
+          >
+            {normalizedOptions.map((option) => (
               <button
-                key={option}
+                key={option.value}
                 type="button"
                 onClick={() => {
-                  onChange(option);
+                  onChange(option.value);
                   setIsOpen(false);
                 }}
                 className={cn(
                   "flex w-full items-center px-3 py-2 text-left text-sm transition hover:bg-[var(--color-muted)]",
-                  value === option && "bg-[var(--color-primary-soft)] text-[var(--color-primary-strong)]",
+                  value === option.value &&
+                    "bg-[var(--color-primary-soft)] text-[var(--color-primary-strong)]",
                 )}
               >
-                {option}
+                {option.label}
               </button>
             ))}
           </div>
@@ -561,6 +613,9 @@ export function LibraryDashboard({
   const [transactionStatusFilter, setTransactionStatusFilter] = React.useState("all");
   const [selectedTransaction, setSelectedTransaction] =
     React.useState<BorrowTransactionRow | null>(null);
+  const [printableTransactionId, setPrintableTransactionId] = React.useState<number | null>(
+    null,
+  );
   const [isPending, startTransition] = React.useTransition();
 
   React.useEffect(() => {
@@ -637,6 +692,7 @@ export function LibraryDashboard({
       status: transaction.status,
       notes: transaction.notes ?? "",
     });
+    setPrintableTransactionId(transaction.id);
     setActiveTab("borrowTransactions");
     toast("Editing borrow record", {
       description: `${transaction.bookTitle} for ${transaction.memberName}.`,
@@ -749,11 +805,18 @@ export function LibraryDashboard({
       });
       const nextTransactions = response.data;
       const nextBooksPayload = await requestJson<ResourceResponse<BookRow>>("/api/library/books");
+      const nextPrintableTransaction =
+        transactionForm.id
+          ? nextTransactions.find(
+              (transaction) => transaction.id === Number(transactionForm.id),
+            ) ?? null
+          : nextTransactions[0] ?? null;
 
       startTransition(() => {
         setBorrowTransactions(nextTransactions);
         setBooks(nextBooksPayload.data);
         refreshStats(nextBooksPayload.data, members, nextTransactions);
+        setPrintableTransactionId(nextPrintableTransaction?.id ?? null);
         setTransactionForm(emptyTransactionForm());
       });
 
@@ -853,6 +916,199 @@ export function LibraryDashboard({
     }
   }
 
+  function printBorrowReceipt(transaction: BorrowTransactionRow) {
+    const receiptWindow = window.open("", "_blank", "noopener,noreferrer,width=900,height=700");
+
+    if (!receiptWindow) {
+      toast.error("Unable to open print preview", {
+        description: "Please allow pop-ups for this site and try again.",
+      });
+      return;
+    }
+
+    const notes = escapeHtml(transaction.notes?.trim() || "No notes provided.");
+    const publisher = escapeHtml(transaction.bookPublisher?.trim() || "N/A");
+    const memberName = escapeHtml(transaction.memberName);
+    const memberStudentId = escapeHtml(transaction.memberStudentId);
+    const bookTitle = escapeHtml(transaction.bookTitle);
+    const bookAuthor = escapeHtml(transaction.bookAuthor);
+    const status = escapeHtml(transaction.status);
+
+    receiptWindow.document.write(`<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Borrow Slip - ${memberName}</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: Arial, sans-serif;
+        color: #1f2937;
+        background: #f8f6f2;
+      }
+
+      .receipt {
+        max-width: 760px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #ddd3c5;
+        border-radius: 24px;
+        padding: 32px;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        border-bottom: 2px solid #7b1113;
+        padding-bottom: 18px;
+        margin-bottom: 24px;
+      }
+
+      .header img {
+        width: 72px;
+        height: 72px;
+        object-fit: contain;
+      }
+
+      .eyebrow {
+        margin: 0 0 6px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #7b1113;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+
+      h2 {
+        margin: 4px 0 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #4b5563;
+      }
+
+      .meta {
+        margin: 0 0 24px;
+        font-size: 14px;
+        color: #6b7280;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .item {
+        border: 1px solid #ddd3c5;
+        border-radius: 16px;
+        padding: 14px 16px;
+        background: #fcfaf6;
+      }
+
+      .label {
+        margin: 0 0 8px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #6b7280;
+      }
+
+      .value {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .notes {
+        margin-top: 16px;
+      }
+
+      @media print {
+        body {
+          background: #ffffff;
+          padding: 0;
+        }
+
+        .receipt {
+          border: none;
+          border-radius: 0;
+          max-width: none;
+          padding: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="receipt">
+      <header class="header">
+        <img src="${window.location.origin}/pup-logo.png" alt="PUP Logo" />
+        <div>
+          <p class="eyebrow">Polytechnic University of the Philippines</p>
+          <h1>Library System Management</h1>
+          <h2>Borrower Receipt Slip</h2>
+        </div>
+      </header>
+      <p class="meta">Issued on ${toReadableDateTime(new Date().toISOString())}</p>
+      <section class="grid">
+        <article class="item">
+          <p class="label">Student Name</p>
+          <p class="value">${memberName}</p>
+        </article>
+        <article class="item">
+          <p class="label">Student ID</p>
+          <p class="value">${memberStudentId}</p>
+        </article>
+        <article class="item">
+          <p class="label">Book Title</p>
+          <p class="value">${bookTitle}</p>
+        </article>
+        <article class="item">
+          <p class="label">Author</p>
+          <p class="value">${bookAuthor}</p>
+        </article>
+        <article class="item">
+          <p class="label">Publisher</p>
+          <p class="value">${publisher}</p>
+        </article>
+        <article class="item">
+          <p class="label">Borrow Date</p>
+          <p class="value">${toReadableDateTime(transaction.borrowedAt)}</p>
+        </article>
+        <article class="item">
+          <p class="label">Due Date</p>
+          <p class="value">${toReadableDateTime(transaction.dueAt)}</p>
+        </article>
+        <article class="item">
+          <p class="label">Status</p>
+          <p class="value">${status}</p>
+        </article>
+      </section>
+      <section class="item notes">
+        <p class="label">Notes</p>
+        <p class="value">${notes}</p>
+      </section>
+    </main>
+    <script>
+      window.onload = function() {
+        window.print();
+        window.onafterprint = function() {
+          window.close();
+        };
+      };
+    </script>
+  </body>
+</html>`);
+    receiptWindow.document.close();
+  }
+
   const filteredBooks = books.filter((book) => {
     const matchesSearch =
       !bookSearch ||
@@ -890,10 +1146,17 @@ export function LibraryDashboard({
   const selectedTransactionRecord = transactionForm.id
     ? borrowTransactions.find((transaction) => transaction.id === Number(transactionForm.id)) ?? null
     : null;
+  const printableTransaction = printableTransactionId
+    ? borrowTransactions.find((transaction) => transaction.id === printableTransactionId) ?? null
+    : null;
   const availableBookOptions = books.filter(
     (book) =>
       book.availableCopies > 0 || String(book.id) === transactionForm.bookId,
   );
+  const borrowBookOptions = availableBookOptions.map((book) => ({
+    value: String(book.id),
+    label: `${book.title} (${book.availableCopies} available)`,
+  }));
 
   const bookColumns: ColumnDef<BookRow>[] = [
     {
@@ -1053,7 +1316,7 @@ export function LibraryDashboard({
             {row.original.bookTitle}
           </p>
           <p className="text-xs text-[var(--color-muted-foreground)]">
-            {row.original.memberName}
+            {row.original.memberName} • {row.original.memberStudentId}
           </p>
         </div>
       ),
@@ -1105,6 +1368,16 @@ export function LibraryDashboard({
             onClick={() => setSelectedTransaction(row.original)}
           >
             <Eye className="size-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            className="size-9"
+            aria-label={`Print borrow slip for ${row.original.memberName}`}
+            title="Print slip"
+            onClick={() => printBorrowReceipt(row.original)}
+          >
+            <Printer className="size-4" />
           </Button>
           <Button
             size="icon"
@@ -1247,6 +1520,30 @@ export function LibraryDashboard({
                   ) > 0
                     ? `${getOverdueDays(selectedTransaction.dueAt, selectedTransaction.returnedAt)} day(s) overdue at PHP ${PENALTY_PER_DAY}/day`
                     : `Penalty rate: PHP ${PENALTY_PER_DAY}/day`}
+                </p>
+              </article>
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
+                  Student ID
+                </p>
+                <p className="mt-2 text-base font-medium text-[var(--color-foreground)]">
+                  {selectedTransaction.memberStudentId}
+                </p>
+              </article>
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
+                  Author
+                </p>
+                <p className="mt-2 text-base font-medium text-[var(--color-foreground)]">
+                  {selectedTransaction.bookAuthor}
+                </p>
+              </article>
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
+                  Publisher
+                </p>
+                <p className="mt-2 text-base font-medium text-[var(--color-foreground)]">
+                  {selectedTransaction.bookPublisher?.trim() || "N/A"}
                 </p>
               </article>
               <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
@@ -1561,14 +1858,11 @@ export function LibraryDashboard({
                     onChange={(event) =>
                       setMemberForm((current) => ({
                         ...current,
-                        section: digitsOnly(event.target.value),
+                        section: event.target.value,
                       }))
                     }
-                    inputMode="numeric"
-                    pattern="\d+"
                     required
-                    title="Section must contain numbers only."
-                    placeholder="2"
+                    placeholder="BSIT 2-A"
                   />
                 </Field>
                 <div className="flex items-center gap-3 md:col-span-2">
@@ -1639,24 +1933,18 @@ export function LibraryDashboard({
                 noValidate
               >
                 <Field label="Book">
-                  <select
+                  <OptionSelect
                     value={transactionForm.bookId}
-                    onChange={(event) =>
+                    onChange={(bookId) =>
                       setTransactionForm((current) => ({
                         ...current,
-                        bookId: event.target.value,
+                        bookId,
                       }))
                     }
-                    required
-                    className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
-                  >
-                    <option value="">Select a book</option>
-                    {availableBookOptions.map((book) => (
-                      <option key={book.id} value={book.id}>
-                        {book.title} ({book.availableCopies} available)
-                      </option>
-                    ))}
-                  </select>
+                    options={borrowBookOptions}
+                    placeholder="Select a book"
+                    maxVisibleItems={7}
+                  />
                 </Field>
                 <Field label="Member">
                   <select
@@ -1718,13 +2006,28 @@ export function LibraryDashboard({
                     }
                   />
                 </Field>
-                <Field label="Due At">
-                  <Input
-                    type="datetime-local"
-                    value={transactionForm.dueAt}
-                    disabled
-                  />
-                </Field>
+                <div className="space-y-2">
+                  <Label>Due At</Label>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <Input
+                      type="datetime-local"
+                      value={transactionForm.dueAt}
+                      disabled
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="shrink-0"
+                      disabled={!printableTransaction}
+                      onClick={() =>
+                        printableTransaction && printBorrowReceipt(printableTransaction)
+                      }
+                    >
+                      <Printer className="size-4" />
+                      Print
+                    </Button>
+                  </div>
+                </div>
                 {transactionForm.id && transactionForm.status === "returned" ? (
                   <Field label="Returned At">
                     <Input
