@@ -3,13 +3,18 @@
 import * as React from "react";
 import Image from "next/image";
 import {
+  ArrowRightLeft,
+  BookOpen,
+  CheckCircle2,
   ChevronDown,
   Eye,
   Pencil,
   Plus,
   Printer,
   Search,
+  ShieldCheck,
   Trash2,
+  Users,
   X,
 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -477,14 +482,46 @@ async function requestJson<T>(
 function StatCard({
   label,
   value,
+  icon: Icon,
+  description,
+  accentClassName,
+  accentColor,
 }: {
   label: string;
   value: number;
+  icon: React.ComponentType<{ className?: string }>;
+  description: string;
+  accentClassName: string;
+  accentColor: string;
 }) {
   return (
-    <article className="rounded-[24px] border border-white/70 bg-white/88 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
-      <p className="text-sm font-medium text-[var(--color-muted-foreground)]">{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-[var(--color-foreground)]">{value}</p>
+    <article
+      className="group relative overflow-hidden rounded-[28px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,251,245,0.92))] p-6 shadow-[0_18px_60px_rgba(63,32,18,0.09)]"
+      style={{ "--card-accent": accentColor } as React.CSSProperties}
+    >
+      <div className="absolute inset-x-0 top-0 h-1.5 bg-[var(--card-accent)]" />
+      <div
+        className={cn(
+          "absolute right-[-18px] top-[-18px] h-24 w-24 rounded-full blur-2xl transition-transform duration-300 group-hover:scale-110",
+          accentClassName,
+        )}
+      />
+      <div className="relative flex items-start justify-between gap-4">
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
+            {label}
+          </p>
+          <p className="text-4xl font-semibold tracking-[-0.04em] text-[var(--color-foreground)]">
+            {value}
+          </p>
+          <p className="max-w-[20ch] text-sm leading-6 text-[var(--color-muted-foreground)]">
+            {description}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-white/70 bg-white/80 p-3 shadow-[0_10px_24px_rgba(63,32,18,0.08)]">
+          <Icon className="size-5 text-[var(--color-primary)]" />
+        </div>
+      </div>
     </article>
   );
 }
@@ -1448,47 +1485,137 @@ export function LibraryDashboard({
     },
   ];
   return (
-    <div className="space-y-8">
-      <section className="flex flex-col gap-6 rounded-[28px] border border-white/70 bg-white/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="shrink-0 rounded-full border border-white/70 bg-white p-1.5 shadow-sm">
-            <Image
-              src="/pup-logo.png"
-              alt="Polytechnic University of the Philippines logo"
-              width={72}
-              height={72}
-              className="h-16 w-16 rounded-full object-cover sm:h-[72px] sm:w-[72px]"
-              priority
-            />
+    <div className="relative space-y-8 overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[320px] bg-[radial-gradient(circle_at_top_left,rgba(123,17,19,0.2),transparent_42%),radial-gradient(circle_at_top_right,rgba(43,89,74,0.18),transparent_35%),linear-gradient(180deg,rgba(255,252,246,0.95),rgba(245,239,229,0.45)_55%,transparent)]" />
+
+      <section className="relative overflow-hidden rounded-[34px] border border-white/75 bg-[linear-gradient(135deg,rgba(255,252,247,0.97),rgba(255,247,238,0.92))] p-6 shadow-[0_30px_90px_rgba(63,32,18,0.13)] backdrop-blur sm:p-8">
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-[42%] bg-[radial-gradient(circle_at_top_right,rgba(123,17,19,0.12),transparent_46%),radial-gradient(circle_at_bottom_right,rgba(213,163,74,0.16),transparent_36%)]" />
+        <div className="pointer-events-none absolute left-8 top-0 h-full w-px bg-[linear-gradient(180deg,rgba(123,17,19,0),rgba(123,17,19,0.18),rgba(123,17,19,0))]" />
+        <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_360px] xl:items-center">
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="shrink-0 rounded-full border border-white/80 bg-white/90 p-1.5 shadow-[0_12px_30px_rgba(63,32,18,0.12)]">
+                <Image
+                  src="/pup-logo.png"
+                  alt="Polytechnic University of the Philippines logo"
+                  width={88}
+                  height={88}
+                  className="h-[72px] w-[72px] rounded-full object-cover sm:h-[88px] sm:w-[88px]"
+                  priority
+                />
+              </div>
+              <div className="space-y-2 text-left">
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#7b1113] sm:text-base">
+                  Polytechnic University of the Philippines
+                </p>
+                <h1 className="max-w-[18ch] text-2xl font-semibold uppercase tracking-[0.18em] text-[var(--color-foreground)] sm:text-[2.1rem]">
+                  Library System Management
+                </h1>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+              <div className="rounded-[28px] border border-[rgba(123,17,19,0.12)] bg-[linear-gradient(135deg,rgba(123,17,19,0.92),rgba(78,12,14,0.96))] px-5 py-6 text-white shadow-[0_20px_45px_rgba(123,17,19,0.24)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">
+                  Campus Collection
+                </p>
+                <p className="mt-3 text-lg font-medium leading-8 text-white/95">
+                  Stewardship for catalog records, borrowers, and circulation activity in one administrative workspace.
+                </p>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1">
+                <div className="rounded-2xl border border-white/70 bg-white/82 px-4 py-4 shadow-[0_16px_38px_rgba(63,32,18,0.08)]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
+                    Environment
+                  </p>
+                  <p className="mt-2 text-base font-semibold text-[var(--color-foreground)]">
+                    Library Operations Desk
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/70 bg-white/82 px-4 py-4 shadow-[0_16px_38px_rgba(63,32,18,0.08)]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
+                    Focus
+                  </p>
+                  <p className="mt-2 text-base font-semibold text-[var(--color-foreground)]">
+                    Track loans, members, and collection health
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="space-y-1 text-left">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[#7b1113] sm:text-base">
-              Polytechnic University of the Philippines
-            </p>
-            <h1 className="text-xl font-bold uppercase tracking-[0.16em] text-[var(--color-foreground)] sm:text-2xl">
-              Library System Management
-            </h1>
+
+          <div className="relative">
+            <div className="absolute inset-0 rounded-[30px] bg-[linear-gradient(180deg,rgba(213,163,74,0.14),rgba(255,255,255,0))] blur-xl" />
+            <div className="relative space-y-4 rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(252,247,240,0.9))] p-5 shadow-[0_22px_55px_rgba(63,32,18,0.12)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-muted-foreground)]">
+                    Logged In User
+                  </p>
+                  <p className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-[var(--color-foreground)]">
+                    {userName}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">{userEmail}</p>
+                </div>
+                <div className="rounded-2xl border border-[rgba(43,89,74,0.14)] bg-[var(--color-primary-soft)] p-3">
+                  <ShieldCheck className="size-5 text-[var(--color-primary)]" />
+                </div>
+              </div>
+
+              <div className="grid gap-3 rounded-[24px] border border-[color:var(--color-border)]/70 bg-white/70 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
+                    Session
+                  </span>
+                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                    Active
+                  </span>
+                </div>
+                <p className="text-sm leading-6 text-[var(--color-muted-foreground)]">
+                  Signed in to maintain records, manage circulation, and review the day&apos;s library activity.
+                </p>
+              </div>
+
+              <SignOutButton className="w-full justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-primary),var(--color-primary-strong))] shadow-[0_16px_34px_rgba(43,89,74,0.22)]" />
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col items-stretch gap-3 lg:min-w-[260px] lg:items-end">
-          <div className="rounded-2xl border border-[color:var(--color-border)] bg-white/90 px-4 py-3 text-left shadow-sm lg:text-right">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              Logged In User
-            </p>
-            <p className="mt-1 text-lg font-semibold text-[var(--color-foreground)]">
-              {userName}
-            </p>
-            <p className="text-sm text-[var(--color-muted-foreground)]">{userEmail}</p>
-          </div>
-          <SignOutButton />
         </div>
       </section>
 
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Books" value={stats.books} />
-        <StatCard label="Members" value={stats.members} />
-        <StatCard label="Borrowed" value={stats.borrowed} />
-        <StatCard label="Returned" value={stats.returned} />
+        <StatCard
+          label="Books"
+          value={stats.books}
+          icon={BookOpen}
+          description="Titles and copies currently held in the working catalog."
+          accentClassName="bg-[rgba(123,17,19,0.16)]"
+          accentColor="#7b1113"
+        />
+        <StatCard
+          label="Members"
+          value={stats.members}
+          icon={Users}
+          description="Registered library users with active academic records."
+          accentClassName="bg-[rgba(43,89,74,0.18)]"
+          accentColor="#2b594a"
+        />
+        <StatCard
+          label="Borrowed"
+          value={stats.borrowed}
+          icon={ArrowRightLeft}
+          description="Books currently circulating across the borrowing desk."
+          accentClassName="bg-[rgba(213,163,74,0.24)]"
+          accentColor="#d5a34a"
+        />
+        <StatCard
+          label="Returned"
+          value={stats.returned}
+          icon={CheckCircle2}
+          description="Completed transactions recorded back into the collection."
+          accentClassName="bg-[rgba(94,129,107,0.2)]"
+          accentColor="#5e816b"
+        />
       </section>
 
       {selectedTransaction ? (
@@ -1636,18 +1763,18 @@ export function LibraryDashboard({
         </div>
       ) : null}
 
-      <section className="space-y-4">
-        <div className="flex flex-wrap gap-3">
+      <section className="space-y-5">
+        <div className="inline-flex flex-wrap gap-2 rounded-[26px] border border-white/75 bg-white/72 p-2 shadow-[0_14px_32px_rgba(63,32,18,0.08)] backdrop-blur">
           {(["books", "members", "borrowTransactions"] as TabKey[]).map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "rounded-full border px-4 py-2 text-sm font-semibold transition",
+                "rounded-full border px-5 py-2.5 text-sm font-semibold transition",
                 activeTab === tab
-                  ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-sm"
-                  : "border-[color:var(--color-border)] bg-white/80 text-[var(--color-foreground)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]",
+                  ? "border-[rgba(123,17,19,0.18)] bg-[linear-gradient(135deg,#7b1113,#561214)] text-white shadow-[0_10px_24px_rgba(123,17,19,0.2)]"
+                  : "border-transparent bg-transparent text-[var(--color-foreground)] hover:border-[color:var(--color-border)] hover:bg-white/70 hover:text-[#7b1113]",
               )}
             >
               {tabLabels[tab]}
@@ -1657,7 +1784,7 @@ export function LibraryDashboard({
 
         {activeTab === "books" ? (
           <div className="space-y-5">
-            <section className="rounded-[24px] border border-white/70 bg-white/88 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+            <section className="rounded-[30px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(255,249,241,0.9))] p-6 shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-semibold text-[var(--color-foreground)]">
@@ -1816,7 +1943,7 @@ export function LibraryDashboard({
               </form>
             </section>
 
-            <section className="space-y-4">
+            <section className="space-y-4 rounded-[28px] border border-white/70 bg-white/60 p-4 shadow-[0_16px_42px_rgba(63,32,18,0.07)] backdrop-blur sm:p-5">
               <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-[var(--color-muted-foreground)]" />
@@ -1830,7 +1957,7 @@ export function LibraryDashboard({
                 <select
                   value={bookStatusFilter}
                   onChange={(event) => setBookStatusFilter(event.target.value)}
-                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
+                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm shadow-[0_6px_18px_rgba(63,32,18,0.04)]"
                 >
                   <option value="all">All statuses</option>
                   <option value="available">Available</option>
@@ -1850,7 +1977,7 @@ export function LibraryDashboard({
 
         {activeTab === "members" ? (
           <div className="space-y-5">
-            <section className="rounded-[24px] border border-white/70 bg-white/88 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+            <section className="rounded-[30px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(255,249,241,0.9))] p-6 shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-semibold text-[var(--color-foreground)]">
@@ -1951,7 +2078,7 @@ export function LibraryDashboard({
               </form>
             </section>
 
-            <section className="space-y-4">
+            <section className="space-y-4 rounded-[28px] border border-white/70 bg-white/60 p-4 shadow-[0_16px_42px_rgba(63,32,18,0.07)] backdrop-blur sm:p-5">
               <div className="grid gap-4">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-[var(--color-muted-foreground)]" />
@@ -1975,7 +2102,7 @@ export function LibraryDashboard({
 
         {activeTab === "borrowTransactions" ? (
           <div className="space-y-5">
-            <section className="rounded-[24px] border border-white/70 bg-white/88 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+            <section className="rounded-[30px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(255,249,241,0.9))] p-6 shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-semibold text-[var(--color-foreground)]">
@@ -2138,7 +2265,7 @@ export function LibraryDashboard({
               </form>
             </section>
 
-            <section className="space-y-4">
+            <section className="space-y-4 rounded-[28px] border border-white/70 bg-white/60 p-4 shadow-[0_16px_42px_rgba(63,32,18,0.07)] backdrop-blur sm:p-5">
               <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-[var(--color-muted-foreground)]" />
@@ -2152,7 +2279,7 @@ export function LibraryDashboard({
                 <select
                   value={transactionStatusFilter}
                   onChange={(event) => setTransactionStatusFilter(event.target.value)}
-                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
+                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm shadow-[0_6px_18px_rgba(63,32,18,0.04)]"
                 >
                   <option value="all">All statuses</option>
                   <option value="borrowed">Borrowed</option>

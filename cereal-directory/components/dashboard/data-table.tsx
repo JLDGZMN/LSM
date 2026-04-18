@@ -32,17 +32,27 @@ export function DataTable<TData>({
   });
 
   React.useEffect(() => {
-    setPagination((current) => ({
-      ...current,
-      pageIndex: 0,
-    }));
-  }, [data]);
+    setPagination((current) => {
+      const nextPageCount = Math.max(1, Math.ceil(data.length / current.pageSize));
+      const nextPageIndex = Math.min(current.pageIndex, nextPageCount - 1);
+
+      if (nextPageIndex === current.pageIndex) {
+        return current;
+      }
+
+      return {
+        ...current,
+        pageIndex: nextPageIndex,
+      };
+    });
+  }, [data.length]);
 
   // TanStack Table owns its internal memoization; React Compiler flags this known pattern.
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
+    autoResetPageIndex: false,
     state: {
       sorting,
       pagination,
@@ -58,10 +68,10 @@ export function DataTable<TData>({
   const currentPage = table.getState().pagination.pageIndex + 1;
 
   return (
-    <div className="overflow-hidden rounded-[24px] border border-white/70 bg-white/92 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+    <div className="overflow-hidden rounded-[30px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,249,241,0.92))] shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
       <div className="overflow-x-auto">
         <table className="min-w-full border-collapse text-left text-sm">
-          <thead className="bg-[var(--color-muted)]/85">
+          <thead className="bg-[linear-gradient(180deg,rgba(247,240,230,0.98),rgba(241,231,217,0.92))]">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -96,7 +106,7 @@ export function DataTable<TData>({
               table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-t border-[color:var(--color-border)]/70 bg-white/95 align-top transition hover:bg-[var(--color-muted)]/45"
+                  className="border-t border-[color:var(--color-border)]/70 bg-white/95 align-top transition hover:bg-[rgba(123,17,19,0.035)]"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-4 text-[var(--color-foreground)]">
@@ -118,7 +128,7 @@ export function DataTable<TData>({
           </tbody>
         </table>
       </div>
-      <div className="flex flex-col gap-3 border-t border-[color:var(--color-border)]/70 bg-white/80 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[color:var(--color-border)]/70 bg-[rgba(247,240,230,0.75)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-[var(--color-muted-foreground)]">
           Page {currentPage} of {totalPages}
         </p>
@@ -127,7 +137,7 @@ export function DataTable<TData>({
             type="button"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-white px-4 text-sm font-medium text-[var(--color-foreground)] transition hover:bg-[var(--color-muted)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-white px-4 text-sm font-medium text-[var(--color-foreground)] shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition hover:bg-[var(--color-muted)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
           </button>
@@ -135,7 +145,7 @@ export function DataTable<TData>({
             type="button"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-white px-4 text-sm font-medium text-[var(--color-foreground)] transition hover:bg-[var(--color-muted)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-white px-4 text-sm font-medium text-[var(--color-foreground)] shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition hover:bg-[var(--color-muted)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>
