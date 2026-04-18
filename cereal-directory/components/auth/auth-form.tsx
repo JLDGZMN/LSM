@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Check, X } from "lucide-react";
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -442,53 +441,7 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
 
   return (
     <Card className="w-full max-w-xl">
-      <CardHeader className="space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="inline-flex size-14 items-center justify-center rounded-2xl border border-white/70 bg-white p-1.5 shadow-sm">
-            <Image
-              src="/pup-logo.png"
-              alt="Polytechnic University of the Philippines logo"
-              width={48}
-              height={48}
-              className="size-11 rounded-full object-cover"
-              priority
-            />
-          </div>
-          <div className="inline-flex rounded-full border border-[color:var(--color-border)] bg-[var(--color-muted)] p-1">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("signin");
-                setHasAttemptedSubmit(false);
-                router.push("/sign-in");
-              }}
-              className={cn(
-                "rounded-full px-4 py-2 text-sm font-medium transition duration-200",
-                mode === "signin"
-                  ? "bg-white text-[var(--color-foreground)] shadow-sm"
-                  : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]",
-              )}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("signup");
-                setHasAttemptedSubmit(false);
-                router.push("/sign-up");
-              }}
-              className={cn(
-                "rounded-full px-4 py-2 text-sm font-medium transition duration-200",
-                mode === "signup"
-                  ? "bg-white text-[var(--color-foreground)] shadow-sm"
-                  : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]",
-              )}
-            >
-              Sign Up
-            </button>
-          </div>
-        </div>
+      <CardHeader className="space-y-4">
         <div className="space-y-2">
           <CardTitle>
             {mode === "signin" ? "Access your library workspace" : "Create your library account"}
