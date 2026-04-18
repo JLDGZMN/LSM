@@ -48,8 +48,8 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(88,10,15,0.72),rgba(99,12,18,0.9)_45%,rgba(70,8,12,0.96))]" />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(0,0,0,0.08))]" />
 
-                <footer className="relative flex min-h-[118px] w-full items-end px-8 pb-2 pt-6">
-                  <div className="flex w-full items-end gap-4">
+                <footer className="relative flex min-h-[118px] w-full items-end justify-center px-8 pb-2 pt-6 text-center">
+                  <div className="flex flex-col items-center">
                     <div className="shrink-0 rounded-full border border-white/24 bg-white/6 p-1 shadow-[0_10px_20px_rgba(25,8,8,0.16)] backdrop-blur-sm">
                       <img
                         src="/pup-logo.png"
@@ -57,7 +57,7 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
                         className="h-12 w-12 rounded-full object-cover"
                       />
                     </div>
-                    <div className="min-w-0 text-left">
+                    <div className="min-w-0 text-center">
                       <p className="font-serif text-[1.5rem] italic leading-none tracking-[0.04em] text-white/95">
                         Mula Sa 'Yo, Para sa Bayan
                       </p>
@@ -78,21 +78,7 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,251,245,0.94),rgba(247,239,228,0.92))]" />
             <div className="absolute inset-0 xl:bg-[radial-gradient(circle_at_top_left,rgba(123,17,19,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(43,89,74,0.1),transparent_22%)]" />
 
-            <div className="relative w-full max-w-xl space-y-5">
-              <div className="space-y-3 text-center xl:hidden">
-                <h1 className="mx-auto max-w-[16ch] text-3xl font-semibold leading-tight tracking-tight text-[var(--color-foreground)]">
-                  {mode === "signin"
-                    ? "Secure access to your library system"
-                    : "Create your library system account"}
-                </h1>
-              </div>
-              <div className="hidden space-y-2 xl:block">
-                <h2 className="max-w-[16ch] text-[2rem] font-semibold leading-tight tracking-tight text-[var(--color-foreground)]">
-                  {mode === "signin"
-                    ? "Secure access to your library system"
-                    : "Create your library system account"}
-                </h2>
-              </div>
+            <div className="relative w-full max-w-xl">
               <AuthForm initialMode={mode} />
             </div>
           </div>
