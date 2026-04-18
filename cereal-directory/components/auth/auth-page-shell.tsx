@@ -22,8 +22,8 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
             <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(76,9,12,0.82),rgba(76,9,12,0.54)_42%,rgba(17,33,28,0.42)_100%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,241,214,0.22),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.14))]" />
 
-            <div className="relative flex h-full flex-col justify-between p-10 text-white">
-              <div className="space-y-6">
+            <div className="relative flex h-full flex-col justify-between text-white">
+              <div className="space-y-6 p-10 pb-8">
                 <div className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white/88">
                   PUP Main Campus
                 </div>
@@ -40,29 +40,29 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
                 </div>
               </div>
 
-              <div className="relative overflow-hidden rounded-[30px] border border-white/16 shadow-[0_24px_60px_rgba(25,8,8,0.24)]">
+              <div className="relative mt-auto overflow-hidden border-t border-white/12">
                 <div
                   className="absolute inset-0 bg-cover bg-center"
                   style={{ backgroundImage: "url('/pup-land.jpeg')" }}
                 />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(93,10,16,0.78),rgba(111,17,24,0.9))]" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.07),transparent_36%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(47,6,9,0.16))]" />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(88,10,15,0.72),rgba(99,12,18,0.9)_45%,rgba(70,8,12,0.96))]" />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(0,0,0,0.08))]" />
 
-                <div className="relative flex min-h-[245px] flex-col items-center justify-center px-8 py-10 text-center">
-                  <div className="rounded-full border border-white/30 bg-white/8 p-2 shadow-[0_12px_24px_rgba(25,8,8,0.18)] backdrop-blur-sm">
+                <footer className="relative flex min-h-[280px] w-full flex-col items-center justify-center px-10 py-12 text-center">
+                  <div className="rounded-full border border-white/24 bg-white/6 p-2 shadow-[0_10px_20px_rgba(25,8,8,0.16)] backdrop-blur-sm">
                     <img
                       src="/pup-logo.png"
                       alt="Polytechnic University of the Philippines logo"
-                      className="h-24 w-24 rounded-full object-cover"
+                      className="h-22 w-22 rounded-full object-cover sm:h-24 sm:w-24"
                     />
                   </div>
-                  <p className="mt-8 font-serif text-[2.7rem] italic tracking-[0.05em] text-white/95">
+                  <p className="mt-8 font-serif text-[2.5rem] italic tracking-[0.04em] text-white/95">
                     Mula Sa 'Yo, Para sa Bayan
                   </p>
-                  <p className="mt-6 max-w-xl text-sm leading-7 text-white/76">
+                  <p className="mt-8 max-w-xl text-sm leading-7 text-white/78">
                     A. Mabini Campus, Anonas Street, Sta. Mesa, Manila, Philippines 1016
                   </p>
-                </div>
+                </footer>
               </div>
             </div>
           </div>
