@@ -8,23 +8,88 @@ interface AuthPageShellProps {
 
 export function AuthPageShell({ mode }: AuthPageShellProps) {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[var(--color-canvas)] px-6 py-10 sm:px-8 lg:px-10">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(239,232,220,0.95),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(210,224,219,0.7),_transparent_24%),linear-gradient(180deg,_rgba(248,246,242,0.98),_rgba(241,236,228,0.98))]" />
-      <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-7xl items-center justify-center">
-        <section className="flex w-full items-center justify-center">
-          <div className="w-full max-w-xl space-y-6">
-            <div className="space-y-2 text-center">
-              <p className="text-sm uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
-                <span className="font-black text-[#7b1113]">PUP</span>{" "}
-                <span className="font-medium">Library System Management</span>
-              </p>
-              <h1 className="text-3xl font-semibold tracking-tight text-[var(--color-foreground)]">
-                {mode === "signin"
-                  ? "Secure access for your library system"
-                  : "Create your library system account"}
-              </h1>
+    <main className="relative min-h-screen overflow-hidden bg-[var(--color-canvas)] px-6 py-8 sm:px-8 lg:px-10">
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(248,243,235,0.84),rgba(243,235,223,0.92))]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(123,17,19,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(43,89,74,0.14),transparent_22%)]" />
+
+      <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center justify-center">
+        <section className="grid w-full overflow-hidden rounded-[34px] border border-white/70 bg-white/40 shadow-[0_30px_90px_rgba(63,32,18,0.16)] backdrop-blur xl:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)]">
+          <div className="relative hidden min-h-[780px] overflow-hidden xl:block">
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: "url('/pup-land.jpeg')" }}
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(76,9,12,0.82),rgba(76,9,12,0.54)_42%,rgba(17,33,28,0.42)_100%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,241,214,0.22),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.14))]" />
+
+            <div className="relative flex h-full flex-col justify-between p-10 text-white">
+              <div className="space-y-6">
+                <div className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white/88">
+                  PUP Main Campus
+                </div>
+                <div className="max-w-xl space-y-4">
+                  <p className="text-sm font-semibold uppercase tracking-[0.26em] text-white/72">
+                    Polytechnic University of the Philippines
+                  </p>
+                  <h1 className="text-5xl font-semibold uppercase leading-[1.05] tracking-[0.14em] text-white">
+                    Library System Management
+                  </h1>
+                  <p className="max-w-lg text-lg leading-8 text-white/82">
+                    A focused workspace for collection records, circulation activity, and member access across the campus library system.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid max-w-xl gap-4 sm:grid-cols-2">
+                <div className="rounded-[26px] border border-white/20 bg-white/10 p-5 backdrop-blur-sm">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/66">
+                    Collection Stewardship
+                  </p>
+                  <p className="mt-3 text-base leading-7 text-white/88">
+                    Keep book records, borrower activity, and lending workflows in one protected environment.
+                  </p>
+                </div>
+                <div className="rounded-[26px] border border-white/20 bg-white/10 p-5 backdrop-blur-sm">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/66">
+                    Institutional Identity
+                  </p>
+                  <p className="mt-3 text-base leading-7 text-white/88">
+                    A sign-in experience grounded in the PUP campus instead of generic admin visuals.
+                  </p>
+                </div>
+              </div>
             </div>
-            <AuthForm initialMode={mode} />
+          </div>
+
+          <div className="relative flex items-center justify-center px-5 py-8 sm:px-8 lg:px-10 xl:min-h-[780px]">
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,251,245,0.94),rgba(247,239,228,0.92))]" />
+            <div className="absolute inset-0 xl:bg-[radial-gradient(circle_at_top_left,rgba(123,17,19,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(43,89,74,0.1),transparent_22%)]" />
+
+            <div className="relative w-full max-w-xl space-y-6">
+              <div className="space-y-3 text-center xl:hidden">
+                <p className="text-sm uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
+                  <span className="font-black text-[#7b1113]">PUP</span>{" "}
+                  <span className="font-medium">Library System Management</span>
+                </p>
+                <h1 className="text-3xl font-semibold tracking-tight text-[var(--color-foreground)]">
+                  {mode === "signin"
+                    ? "Secure access for your library system"
+                    : "Create your library system account"}
+                </h1>
+              </div>
+              <div className="hidden space-y-2 xl:block">
+                <p className="text-sm uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
+                  <span className="font-black text-[#7b1113]">PUP</span>{" "}
+                  <span className="font-medium">Library System Management</span>
+                </p>
+                <h2 className="text-3xl font-semibold tracking-tight text-[var(--color-foreground)]">
+                  {mode === "signin"
+                    ? "Secure access for your library system"
+                    : "Create your library system account"}
+                </h2>
+              </div>
+              <AuthForm initialMode={mode} />
+            </div>
           </div>
         </section>
       </div>

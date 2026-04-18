@@ -12,7 +12,6 @@ import {
   Plus,
   Printer,
   Search,
-  ShieldCheck,
   Trash2,
   Users,
   X,
@@ -275,6 +274,18 @@ function toReadableDateTime(value: string | null) {
     hour: "numeric",
     minute: "2-digit",
   }).format(parseDateTimeLocal(value));
+}
+
+function formatHeaderDateTime(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(date);
 }
 
 function escapeHtml(value: string) {
@@ -544,7 +555,7 @@ function StatusPill({
   return (
     <span
       className={cn(
-        "inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold capitalize",
+        "inline-flex whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-semibold capitalize",
         toneClasses[tone],
       )}
     >
@@ -683,6 +694,7 @@ export function LibraryDashboard({
     "book" | "member" | "transaction" | null
   >(null);
   const [isPending, startTransition] = React.useTransition();
+  const [headerNow, setHeaderNow] = React.useState(() => new Date());
 
   React.useEffect(() => {
     setTransactionForm((current) => {
@@ -698,6 +710,14 @@ export function LibraryDashboard({
       };
     });
   }, [transactionForm.borrowedAt]);
+
+  React.useEffect(() => {
+    const interval = window.setInterval(() => {
+      setHeaderNow(new Date());
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   function refreshStats(
     nextBooks: BookRow[],
@@ -1486,45 +1506,47 @@ export function LibraryDashboard({
   ];
   return (
     <div className="space-y-8">
-      <section className="flex flex-col gap-6 rounded-[28px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(255,249,241,0.88))] p-6 shadow-[0_24px_70px_rgba(63,32,18,0.1)] sm:p-8 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="shrink-0 rounded-full border border-white/80 bg-white/90 p-1.5 shadow-[0_12px_30px_rgba(63,32,18,0.12)]">
-            <Image
-              src="/pup-logo.png"
-              alt="Polytechnic University of the Philippines logo"
-              width={72}
-              height={72}
-              className="h-16 w-16 rounded-full object-cover sm:h-[72px] sm:w-[72px]"
-              priority
-            />
-          </div>
-          <div className="space-y-2 text-left">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#7b1113] sm:text-base">
-              Polytechnic University of the Philippines
-            </p>
-            <h1 className="text-2xl font-semibold uppercase tracking-[0.16em] text-[var(--color-foreground)] sm:text-3xl">
-              Library System Management
-            </h1>
-          </div>
-        </div>
-        <div className="flex flex-col items-stretch gap-3 lg:min-w-[300px] lg:items-end">
-          <div className="rounded-[26px] border border-white/80 bg-white/85 px-5 py-4 text-left shadow-[0_18px_42px_rgba(63,32,18,0.08)] lg:text-right">
-            <div className="flex items-start justify-between gap-4 lg:justify-end">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-muted-foreground)]">
-                  Logged In User
-                </p>
-                <p className="mt-2 text-xl font-semibold text-[var(--color-foreground)]">
-                  {userName}
-                </p>
-                <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">{userEmail}</p>
-              </div>
-              <div className="rounded-2xl border border-[rgba(43,89,74,0.14)] bg-[var(--color-primary-soft)] p-3">
-                <ShieldCheck className="size-5 text-[var(--color-primary)]" />
-              </div>
+      <section className="flex flex-col gap-6 rounded-[28px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(255,249,241,0.88))] p-6 shadow-[0_24px_70px_rgba(63,32,18,0.1)] sm:p-8 lg:min-h-[180px] lg:flex-row lg:justify-between">
+        <div className="flex min-h-full flex-1 flex-col justify-between gap-5">
+          <div className="flex items-start gap-3">
+            <div className="shrink-0 rounded-full border border-white/80 bg-white/90 p-1.5 shadow-[0_12px_30px_rgba(63,32,18,0.12)]">
+              <Image
+                src="/pup-logo.png"
+                alt="Polytechnic University of the Philippines logo"
+                width={64}
+                height={64}
+                className="h-14 w-14 rounded-full object-cover sm:h-16 sm:w-16"
+                priority
+              />
+            </div>
+            <div className="space-y-1 pt-1 text-left">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7b1113] sm:text-sm">
+                Polytechnic University of the Philippines
+              </p>
+              <h1 className="text-xl font-semibold uppercase tracking-[0.12em] text-[var(--color-foreground)] sm:text-2xl">
+                Library System Management
+              </h1>
             </div>
           </div>
-          <SignOutButton className="rounded-2xl bg-[linear-gradient(135deg,var(--color-primary),var(--color-primary-strong))] px-6 shadow-[0_16px_34px_rgba(43,89,74,0.22)]" />
+
+          <div className="border-t border-[color:var(--color-border)]/60 pt-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
+              Live Date and Time
+            </p>
+            <p className="mt-2 text-sm font-medium text-[var(--color-foreground)] sm:text-base">
+              {formatHeaderDateTime(headerNow)}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-start justify-end">
+          <div className="flex flex-wrap items-center justify-end gap-3 rounded-full border border-white/80 bg-white/78 px-3 py-2 shadow-[0_12px_30px_rgba(63,32,18,0.07)]">
+            <div className="text-right">
+              <p className="text-sm font-semibold text-[var(--color-foreground)]">{userName}</p>
+              <p className="text-xs text-[var(--color-muted-foreground)]">{userEmail}</p>
+            </div>
+            <SignOutButton className="h-9 rounded-full px-4 py-2 text-xs font-semibold shadow-none" />
+          </div>
         </div>
       </section>
 
