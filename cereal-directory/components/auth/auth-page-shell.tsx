@@ -27,8 +27,8 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
                 <div className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white/88">
                   PUP Main Campus
                 </div>
-                <div className="max-w-xl space-y-4">
-                  <p className="text-sm font-semibold uppercase tracking-[0.26em] text-white/72">
+                <div className="max-w-xl space-y-5">
+                  <p className="text-base font-semibold uppercase tracking-[0.22em] text-[#f4d9d9]">
                     Polytechnic University of the Philippines
                   </p>
                   <h1 className="text-5xl font-semibold uppercase leading-[1.05] tracking-[0.14em] text-white">
@@ -40,22 +40,32 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
                 </div>
               </div>
 
-              <div className="grid max-w-xl gap-4 sm:grid-cols-2">
-                <div className="rounded-[26px] border border-white/20 bg-white/10 p-5 backdrop-blur-sm">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/66">
-                    Collection Stewardship
-                  </p>
-                  <p className="mt-3 text-base leading-7 text-white/88">
-                    Keep book records, borrower activity, and lending workflows in one protected environment.
+              <div className="overflow-hidden rounded-[30px] border border-white/18 bg-[linear-gradient(180deg,rgba(103,10,18,0.84),rgba(89,10,17,0.94))] shadow-[0_24px_60px_rgba(25,8,8,0.24)]">
+                <div className="border-b border-white/12 px-6 py-5 text-center">
+                  <p className="font-serif text-[2rem] italic tracking-[0.04em] text-white/92">
+                    "Mula Sa 'Yo, Para sa Bayan"
                   </p>
                 </div>
-                <div className="rounded-[26px] border border-white/20 bg-white/10 p-5 backdrop-blur-sm">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/66">
-                    Institutional Identity
-                  </p>
-                  <p className="mt-3 text-base leading-7 text-white/88">
-                    A sign-in experience grounded in the PUP campus instead of generic admin visuals.
-                  </p>
+                <div className="grid gap-5 px-6 py-5 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+                      Campus Address
+                    </p>
+                    <p className="mt-3 text-base leading-7 text-white/88">
+                      A. Mabini Campus, Anonas Street, Sta. Mesa, Manila, Philippines 1016
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+                      Contact Information
+                    </p>
+                    <p className="mt-3 text-base leading-7 text-white/88">
+                      (+63 2) 5335-1787 / 5335-1777
+                    </p>
+                    <p className="mt-1 text-base leading-7 text-white/88">
+                      inquire@pup.edu.ph
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -65,12 +75,8 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,251,245,0.94),rgba(247,239,228,0.92))]" />
             <div className="absolute inset-0 xl:bg-[radial-gradient(circle_at_top_left,rgba(123,17,19,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(43,89,74,0.1),transparent_22%)]" />
 
-            <div className="relative w-full max-w-xl space-y-6">
+            <div className="relative w-full max-w-xl space-y-5">
               <div className="space-y-3 text-center xl:hidden">
-                <p className="text-sm uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
-                  <span className="font-black text-[#7b1113]">PUP</span>{" "}
-                  <span className="font-medium">Library System Management</span>
-                </p>
                 <h1 className="text-3xl font-semibold tracking-tight text-[var(--color-foreground)]">
                   {mode === "signin"
                     ? "Secure access for your library system"
@@ -78,10 +84,6 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
                 </h1>
               </div>
               <div className="hidden space-y-2 xl:block">
-                <p className="text-sm uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
-                  <span className="font-black text-[#7b1113]">PUP</span>{" "}
-                  <span className="font-medium">Library System Management</span>
-                </p>
                 <h2 className="text-3xl font-semibold tracking-tight text-[var(--color-foreground)]">
                   {mode === "signin"
                     ? "Secure access for your library system"
