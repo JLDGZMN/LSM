@@ -40,32 +40,28 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
                 </div>
               </div>
 
-              <div className="overflow-hidden rounded-[30px] border border-white/18 bg-[linear-gradient(180deg,rgba(103,10,18,0.84),rgba(89,10,17,0.94))] shadow-[0_24px_60px_rgba(25,8,8,0.24)]">
-                <div className="border-b border-white/12 px-6 py-5 text-center">
-                  <p className="font-serif text-[2rem] italic tracking-[0.04em] text-white/92">
-                    "Mula Sa 'Yo, Para sa Bayan"
+              <div className="relative overflow-hidden rounded-[30px] border border-white/16 shadow-[0_24px_60px_rgba(25,8,8,0.24)]">
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: "url('/pup-land.jpeg')" }}
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(93,10,16,0.78),rgba(111,17,24,0.9))]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.07),transparent_36%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(47,6,9,0.16))]" />
+
+                <div className="relative flex min-h-[245px] flex-col items-center justify-center px-8 py-10 text-center">
+                  <div className="rounded-full border border-white/30 bg-white/8 p-2 shadow-[0_12px_24px_rgba(25,8,8,0.18)] backdrop-blur-sm">
+                    <img
+                      src="/pup-logo.png"
+                      alt="Polytechnic University of the Philippines logo"
+                      className="h-24 w-24 rounded-full object-cover"
+                    />
+                  </div>
+                  <p className="mt-8 font-serif text-[2.7rem] italic tracking-[0.05em] text-white/95">
+                    Mula Sa 'Yo, Para sa Bayan
                   </p>
-                </div>
-                <div className="grid gap-5 px-6 py-5 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
-                      Campus Address
-                    </p>
-                    <p className="mt-3 text-base leading-7 text-white/88">
-                      A. Mabini Campus, Anonas Street, Sta. Mesa, Manila, Philippines 1016
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
-                      Contact Information
-                    </p>
-                    <p className="mt-3 text-base leading-7 text-white/88">
-                      (+63 2) 5335-1787 / 5335-1777
-                    </p>
-                    <p className="mt-1 text-base leading-7 text-white/88">
-                      inquire@pup.edu.ph
-                    </p>
-                  </div>
+                  <p className="mt-6 max-w-xl text-sm leading-7 text-white/76">
+                    A. Mabini Campus, Anonas Street, Sta. Mesa, Manila, Philippines 1016
+                  </p>
                 </div>
               </div>
             </div>
