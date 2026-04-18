@@ -1485,101 +1485,46 @@ export function LibraryDashboard({
     },
   ];
   return (
-    <div className="relative space-y-8 overflow-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[320px] bg-[radial-gradient(circle_at_top_left,rgba(123,17,19,0.2),transparent_42%),radial-gradient(circle_at_top_right,rgba(43,89,74,0.18),transparent_35%),linear-gradient(180deg,rgba(255,252,246,0.95),rgba(245,239,229,0.45)_55%,transparent)]" />
-
-      <section className="relative overflow-hidden rounded-[34px] border border-white/75 bg-[linear-gradient(135deg,rgba(255,252,247,0.97),rgba(255,247,238,0.92))] p-6 shadow-[0_30px_90px_rgba(63,32,18,0.13)] backdrop-blur sm:p-8">
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-[42%] bg-[radial-gradient(circle_at_top_right,rgba(123,17,19,0.12),transparent_46%),radial-gradient(circle_at_bottom_right,rgba(213,163,74,0.16),transparent_36%)]" />
-        <div className="pointer-events-none absolute left-8 top-0 h-full w-px bg-[linear-gradient(180deg,rgba(123,17,19,0),rgba(123,17,19,0.18),rgba(123,17,19,0))]" />
-        <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_360px] xl:items-center">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="shrink-0 rounded-full border border-white/80 bg-white/90 p-1.5 shadow-[0_12px_30px_rgba(63,32,18,0.12)]">
-                <Image
-                  src="/pup-logo.png"
-                  alt="Polytechnic University of the Philippines logo"
-                  width={88}
-                  height={88}
-                  className="h-[72px] w-[72px] rounded-full object-cover sm:h-[88px] sm:w-[88px]"
-                  priority
-                />
-              </div>
-              <div className="space-y-2 text-left">
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#7b1113] sm:text-base">
-                  Polytechnic University of the Philippines
+    <div className="space-y-8">
+      <section className="flex flex-col gap-6 rounded-[28px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(255,249,241,0.88))] p-6 shadow-[0_24px_70px_rgba(63,32,18,0.1)] sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="shrink-0 rounded-full border border-white/80 bg-white/90 p-1.5 shadow-[0_12px_30px_rgba(63,32,18,0.12)]">
+            <Image
+              src="/pup-logo.png"
+              alt="Polytechnic University of the Philippines logo"
+              width={72}
+              height={72}
+              className="h-16 w-16 rounded-full object-cover sm:h-[72px] sm:w-[72px]"
+              priority
+            />
+          </div>
+          <div className="space-y-2 text-left">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#7b1113] sm:text-base">
+              Polytechnic University of the Philippines
+            </p>
+            <h1 className="text-2xl font-semibold uppercase tracking-[0.16em] text-[var(--color-foreground)] sm:text-3xl">
+              Library System Management
+            </h1>
+          </div>
+        </div>
+        <div className="flex flex-col items-stretch gap-3 lg:min-w-[300px] lg:items-end">
+          <div className="rounded-[26px] border border-white/80 bg-white/85 px-5 py-4 text-left shadow-[0_18px_42px_rgba(63,32,18,0.08)] lg:text-right">
+            <div className="flex items-start justify-between gap-4 lg:justify-end">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-muted-foreground)]">
+                  Logged In User
                 </p>
-                <h1 className="max-w-[18ch] text-2xl font-semibold uppercase tracking-[0.18em] text-[var(--color-foreground)] sm:text-[2.1rem]">
-                  Library System Management
-                </h1>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-              <div className="rounded-[28px] border border-[rgba(123,17,19,0.12)] bg-[linear-gradient(135deg,rgba(123,17,19,0.92),rgba(78,12,14,0.96))] px-5 py-6 text-white shadow-[0_20px_45px_rgba(123,17,19,0.24)]">
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">
-                  Campus Collection
+                <p className="mt-2 text-xl font-semibold text-[var(--color-foreground)]">
+                  {userName}
                 </p>
-                <p className="mt-3 text-lg font-medium leading-8 text-white/95">
-                  Stewardship for catalog records, borrowers, and circulation activity in one administrative workspace.
-                </p>
+                <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">{userEmail}</p>
               </div>
-
-              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1">
-                <div className="rounded-2xl border border-white/70 bg-white/82 px-4 py-4 shadow-[0_16px_38px_rgba(63,32,18,0.08)]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
-                    Environment
-                  </p>
-                  <p className="mt-2 text-base font-semibold text-[var(--color-foreground)]">
-                    Library Operations Desk
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/70 bg-white/82 px-4 py-4 shadow-[0_16px_38px_rgba(63,32,18,0.08)]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
-                    Focus
-                  </p>
-                  <p className="mt-2 text-base font-semibold text-[var(--color-foreground)]">
-                    Track loans, members, and collection health
-                  </p>
-                </div>
+              <div className="rounded-2xl border border-[rgba(43,89,74,0.14)] bg-[var(--color-primary-soft)] p-3">
+                <ShieldCheck className="size-5 text-[var(--color-primary)]" />
               </div>
             </div>
           </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 rounded-[30px] bg-[linear-gradient(180deg,rgba(213,163,74,0.14),rgba(255,255,255,0))] blur-xl" />
-            <div className="relative space-y-4 rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(252,247,240,0.9))] p-5 shadow-[0_22px_55px_rgba(63,32,18,0.12)]">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-muted-foreground)]">
-                    Logged In User
-                  </p>
-                  <p className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-[var(--color-foreground)]">
-                    {userName}
-                  </p>
-                  <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">{userEmail}</p>
-                </div>
-                <div className="rounded-2xl border border-[rgba(43,89,74,0.14)] bg-[var(--color-primary-soft)] p-3">
-                  <ShieldCheck className="size-5 text-[var(--color-primary)]" />
-                </div>
-              </div>
-
-              <div className="grid gap-3 rounded-[24px] border border-[color:var(--color-border)]/70 bg-white/70 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
-                    Session
-                  </span>
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                    Active
-                  </span>
-                </div>
-                <p className="text-sm leading-6 text-[var(--color-muted-foreground)]">
-                  Signed in to maintain records, manage circulation, and review the day&apos;s library activity.
-                </p>
-              </div>
-
-              <SignOutButton className="w-full justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-primary),var(--color-primary-strong))] shadow-[0_16px_34px_rgba(43,89,74,0.22)]" />
-            </div>
-          </div>
+          <SignOutButton className="rounded-2xl bg-[linear-gradient(135deg,var(--color-primary),var(--color-primary-strong))] px-6 shadow-[0_16px_34px_rgba(43,89,74,0.22)]" />
         </div>
       </section>
 
