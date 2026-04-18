@@ -48,21 +48,21 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(88,10,15,0.72),rgba(99,12,18,0.9)_45%,rgba(70,8,12,0.96))]" />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(0,0,0,0.08))]" />
 
-                <footer className="relative flex min-h-[280px] w-full flex-col items-center justify-end px-10 pb-10 pt-16 text-center">
-                  <div className="rounded-full border border-white/24 bg-white/6 p-2 shadow-[0_10px_20px_rgba(25,8,8,0.16)] backdrop-blur-sm">
+                <footer className="relative flex min-h-[200px] w-full flex-col items-center justify-end px-10 pb-7 pt-10 text-center">
+                  <div className="rounded-full border border-white/24 bg-white/6 p-1.5 shadow-[0_10px_20px_rgba(25,8,8,0.16)] backdrop-blur-sm">
                     <img
                       src="/pup-logo.png"
                       alt="Polytechnic University of the Philippines logo"
-                      className="h-22 w-22 rounded-full object-cover sm:h-24 sm:w-24"
+                      className="h-16 w-16 rounded-full object-cover sm:h-20 sm:w-20"
                     />
                   </div>
-                  <p className="mt-6 font-serif text-[2.5rem] italic tracking-[0.04em] text-white/95">
+                  <p className="mt-4 font-serif text-[2rem] italic tracking-[0.04em] text-white/95">
                     Mula Sa 'Yo, Para sa Bayan
                   </p>
-                  <p className="mt-6 max-w-xl text-sm leading-7 text-white/78">
+                  <p className="mt-4 max-w-xl text-sm leading-6 text-white/78">
                     A. Mabini Campus, Anonas Street, Sta. Mesa, Manila, Philippines 1016
                   </p>
-                  <p className="mt-2 max-w-xl text-sm leading-7 text-white/78">
+                  <p className="mt-1.5 max-w-xl text-sm leading-6 text-white/78">
                     Phone: (+63 2) 5335-1PUP (5335-1787) or 5335-1777
                   </p>
                 </footer>
