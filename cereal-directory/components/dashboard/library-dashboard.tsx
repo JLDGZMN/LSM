@@ -1041,6 +1041,7 @@ export function LibraryDashboard({
     const bookTitle = escapeHtml(transaction.bookTitle);
     const bookAuthor = escapeHtml(transaction.bookAuthor);
     const status = escapeHtml(transaction.status);
+    const penaltyAmount = getPenaltyAmount(transaction);
 
     receiptDocument.open();
     receiptDocument.write(`<!DOCTYPE html>
@@ -1199,6 +1200,14 @@ export function LibraryDashboard({
           <p class="label">Status</p>
           <p class="value">${status}</p>
         </article>
+        ${
+          penaltyAmount > 0
+            ? `<article class="item">
+          <p class="label">Current Penalty</p>
+          <p class="value">PHP ${penaltyAmount}</p>
+        </article>`
+            : ""
+        }
       </section>
       <section class="item notes">
         <p class="label">Notes</p>
@@ -1207,7 +1216,7 @@ export function LibraryDashboard({
       <section class="item notes">
         <p class="label">Reminder</p>
         <p class="value">Books must be returned on or before the due date.</p>
-        <p class="value">Overdue items will be subject to daily penalties until returned.</p>
+        <p class="value">Overdue items will be charged PHP ${PENALTY_PER_DAY}/day until returned.</p>
       </section>
     </main>
     <script>
@@ -1715,9 +1724,15 @@ export function LibraryDashboard({
                 <p className="mt-2 text-base font-medium text-[var(--color-foreground)]">
                   {selectedTransaction.notes?.trim() || "No notes provided."}
                 </p>
+              </article>
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
+                  Actions
+                </p>
                 <div className="mt-4">
                   <Button
                     variant="outline"
+                    className="w-full justify-center"
                     onClick={() => printBorrowReceipt(selectedTransaction)}
                   >
                     <Printer className="size-4" />
