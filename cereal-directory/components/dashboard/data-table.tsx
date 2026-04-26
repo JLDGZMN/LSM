@@ -71,7 +71,7 @@ export function DataTable<TData>({
     <div className="overflow-hidden rounded-[30px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,249,241,0.92))] shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
       <div className="overflow-x-auto">
         <table className="min-w-full border-collapse text-left text-sm">
-          <thead className="bg-[linear-gradient(180deg,rgba(247,240,230,0.98),rgba(241,231,217,0.92))]">
+          <thead className="sticky top-0 z-10 bg-[linear-gradient(180deg,rgba(247,240,230,0.98),rgba(241,231,217,0.92))] backdrop-blur">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -80,14 +80,14 @@ export function DataTable<TData>({
                     className="px-4 py-3 font-semibold text-[var(--color-foreground)]"
                   >
                     {header.isPlaceholder ? null : (
-                      <button
-                        type="button"
-                        onClick={header.column.getToggleSortingHandler()}
-                        className={cn(
-                          "inline-flex items-center gap-2 transition hover:text-[var(--color-primary)]",
-                          header.column.getCanSort() ? "cursor-pointer" : "cursor-default",
-                        )}
-                      >
+                        <button
+                          type="button"
+                          onClick={header.column.getToggleSortingHandler()}
+                          className={cn(
+                            "inline-flex items-center gap-2 rounded-lg px-1 py-1 transition hover:text-[var(--color-primary)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]",
+                            header.column.getCanSort() ? "cursor-pointer" : "cursor-default",
+                          )}
+                        >
                         {flexRender(
                           header.column.columnDef.header,
                           header.getContext(),
@@ -133,20 +133,20 @@ export function DataTable<TData>({
           Page {currentPage} of {totalPages}
         </p>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-white px-4 text-sm font-medium text-[var(--color-foreground)] shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition hover:bg-[var(--color-muted)] disabled:cursor-not-allowed disabled:opacity-50"
-          >
+            <button
+              type="button"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-white px-4 text-sm font-medium text-[var(--color-foreground)] shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition hover:bg-[var(--color-muted)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
             Previous
           </button>
-          <button
-            type="button"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-white px-4 text-sm font-medium text-[var(--color-foreground)] shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition hover:bg-[var(--color-muted)] disabled:cursor-not-allowed disabled:opacity-50"
-          >
+            <button
+              type="button"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-white px-4 text-sm font-medium text-[var(--color-foreground)] shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition hover:bg-[var(--color-muted)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
             Next
           </button>
         </div>

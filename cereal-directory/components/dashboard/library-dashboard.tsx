@@ -4,6 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import {
   ArrowRightLeft,
+  Bell,
   BookOpen,
   CheckCircle2,
   ChevronDown,
@@ -519,13 +520,13 @@ function StatCard({
       />
       <div className="relative flex items-start justify-between gap-4">
         <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted-foreground)]">
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-muted-foreground)]">
             {label}
           </p>
-          <p className="text-4xl font-semibold tracking-[-0.04em] text-[var(--color-foreground)]">
+          <p className="font-[family:var(--font-display)] text-[2.85rem] font-semibold leading-none tracking-[-0.035em] text-[var(--color-foreground)] sm:text-[3.15rem]">
             {value}
           </p>
-          <p className="max-w-[20ch] text-sm leading-6 text-[var(--color-muted-foreground)]">
+          <p className="max-w-[22ch] text-[0.95rem] leading-6 text-[var(--color-muted-foreground)]">
             {description}
           </p>
         </div>
@@ -620,7 +621,7 @@ function OptionSelect({
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="flex h-11 w-full items-center justify-between rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm text-left"
+        className="flex h-11 w-full items-center justify-between rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm text-left text-[var(--color-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
       >
         <span className={cn(!value && "text-[var(--color-muted-foreground)]")}>
           {selectedOption?.label || placeholder}
@@ -648,7 +649,7 @@ function OptionSelect({
                   setIsOpen(false);
                 }}
                 className={cn(
-                  "flex w-full items-center px-3 py-2 text-left text-sm transition hover:bg-[var(--color-muted)]",
+                  "flex w-full items-center px-3 py-2 text-left text-sm transition hover:bg-[var(--color-muted)] focus-visible:bg-[var(--color-muted)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-ring)]",
                   value === option.value &&
                     "bg-[var(--color-primary-soft)] text-[var(--color-primary-strong)]",
                 )}
@@ -1542,7 +1543,7 @@ export function LibraryDashboard({
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
               Live Date and Time
             </p>
-            <p className="mt-2 text-sm font-medium text-[var(--color-foreground)] sm:text-base">
+            <p className="mt-2 font-[family:var(--font-display)] text-lg font-semibold tracking-[0.01em] text-[var(--color-foreground)] sm:text-xl">
               {formatHeaderDateTime(headerNow)}
             </p>
           </div>
@@ -1554,7 +1555,17 @@ export function LibraryDashboard({
               <p className="text-sm font-semibold text-[var(--color-foreground)]">{userName}</p>
               <p className="text-xs text-[var(--color-muted-foreground)]">{userEmail}</p>
             </div>
-            <SignOutButton className="h-9 rounded-full px-4 py-2 text-xs font-semibold shadow-none" />
+            <div className="flex items-center gap-2 rounded-full border border-[color:var(--color-border)] bg-white/92 p-1">
+              <button
+                type="button"
+                aria-label="Notifications"
+                title="Notifications"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-primary-soft)]/70 text-[var(--color-primary)] shadow-sm transition hover:bg-[var(--color-primary-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              >
+                <Bell className="size-4" />
+              </button>
+              <SignOutButton className="h-9 rounded-full px-4 py-2 text-xs font-semibold shadow-none" />
+            </div>
           </div>
         </div>
       </section>
@@ -1916,6 +1927,7 @@ export function LibraryDashboard({
                     <Button
                       type="button"
                       variant="outline"
+                      className="bg-[var(--color-muted)]/90 font-semibold text-[var(--color-foreground)] shadow-sm hover:bg-[var(--color-primary-soft)]"
                       onClick={() => setBookForm(emptyBookForm())}
                     >
                       Cancel Edit
@@ -1939,7 +1951,7 @@ export function LibraryDashboard({
                 <select
                   value={bookStatusFilter}
                   onChange={(event) => setBookStatusFilter(event.target.value)}
-                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm shadow-[0_6px_18px_rgba(63,32,18,0.04)]"
+                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
                 >
                   <option value="all">All statuses</option>
                   <option value="available">Available</option>
@@ -1970,7 +1982,11 @@ export function LibraryDashboard({
                   </p>
                 </div>
                 {memberForm.id ? (
-                  <Button variant="ghost" onClick={() => setMemberForm(emptyMemberForm())}>
+                  <Button
+                    variant="ghost"
+                    className="font-medium"
+                    onClick={() => setMemberForm(emptyMemberForm())}
+                  >
                     Reset Form
                   </Button>
                 ) : null}
@@ -2051,6 +2067,7 @@ export function LibraryDashboard({
                     <Button
                       type="button"
                       variant="outline"
+                      className="bg-[var(--color-muted)]/90 font-semibold text-[var(--color-foreground)] shadow-sm hover:bg-[var(--color-primary-soft)]"
                       onClick={() => setMemberForm(emptyMemberForm())}
                     >
                       Cancel Edit
@@ -2097,6 +2114,7 @@ export function LibraryDashboard({
                 {transactionForm.id ? (
                   <Button
                     variant="ghost"
+                    className="font-medium"
                     onClick={() => setTransactionForm(emptyTransactionForm())}
                   >
                     Reset Form
@@ -2133,7 +2151,7 @@ export function LibraryDashboard({
                       }))
                     }
                     required
-                    className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
+                    className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm text-[var(--color-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
                   >
                     <option value="">Select a member</option>
                     {members.map((member) => (
@@ -2154,7 +2172,7 @@ export function LibraryDashboard({
                           returnedAt: event.target.value === "returned" ? current.returnedAt : "",
                         }))
                       }
-                      className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
+                      className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm text-[var(--color-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
                     >
                       {selectedTransactionRecord?.status === "overdue" ? (
                         <option value="overdue">Overdue (automatic)</option>
@@ -2216,7 +2234,7 @@ export function LibraryDashboard({
                         }))
                       }
                       placeholder="Optional notes about the transaction"
-                      className="min-h-24 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm"
+                      className="min-h-24 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm text-[var(--color-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-200 placeholder:text-[var(--color-muted-foreground)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
                     />
                   </Field>
                 </div>
@@ -2238,6 +2256,7 @@ export function LibraryDashboard({
                     <Button
                       type="button"
                       variant="outline"
+                      className="bg-[var(--color-muted)]/90 font-semibold text-[var(--color-foreground)] shadow-sm hover:bg-[var(--color-primary-soft)]"
                       onClick={() => setTransactionForm(emptyTransactionForm())}
                     >
                       Cancel Edit
@@ -2261,7 +2280,7 @@ export function LibraryDashboard({
                 <select
                   value={transactionStatusFilter}
                   onChange={(event) => setTransactionStatusFilter(event.target.value)}
-                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm shadow-[0_6px_18px_rgba(63,32,18,0.04)]"
+                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
                 >
                   <option value="all">All statuses</option>
                   <option value="borrowed">Borrowed</option>

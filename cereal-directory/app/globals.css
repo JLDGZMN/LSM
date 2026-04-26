@@ -21,6 +21,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-cormorant-garamond);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -52,6 +53,14 @@ button {
     border-color 0.2s ease,
     box-shadow 0.2s ease,
     transform 0.2s ease;
+}
+
+:where(input, select, textarea, button):focus-visible {
+  outline: none;
+}
+
+:where(input, select, textarea, button):disabled {
+  cursor: not-allowed;
 }
 
 ::selection {
