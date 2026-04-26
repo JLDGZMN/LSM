@@ -624,7 +624,7 @@ function OptionSelect({
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="flex h-11 w-full items-center justify-between rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm text-left text-[var(--color-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
+        className="flex h-11 w-full items-center justify-between rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 px-3 py-2 text-sm text-left text-[var(--color-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
       >
         <span className={cn(!value && "text-[var(--color-muted-foreground)]")}>
           {selectedOption?.label || placeholder}
@@ -638,7 +638,7 @@ function OptionSelect({
       </button>
 
       {isOpen ? (
-        <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-[color:var(--color-border)] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
+        <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)] shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
           <div
             className="overflow-y-auto py-1"
             style={{ maxHeight: `${maxVisibleItems * 40}px` }}

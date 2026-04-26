@@ -8,6 +8,12 @@ import { cn } from "@/lib/utils";
 
 type Theme = "light" | "dark";
 
+function applyTheme(theme: Theme) {
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+  localStorage.setItem("library-theme", theme);
+}
+
 function getThemeFromDocument(): Theme {
   if (typeof document === "undefined") {
     return "light";
@@ -25,8 +31,7 @@ export function ThemeToggle({ className }: { className?: string }) {
 
   const toggleTheme = React.useCallback(() => {
     const nextTheme: Theme = theme === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = nextTheme;
-    localStorage.setItem("library-theme", nextTheme);
+    applyTheme(nextTheme);
     setTheme(nextTheme);
   }, [theme]);
 
