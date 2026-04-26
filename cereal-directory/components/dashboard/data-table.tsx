@@ -137,7 +137,7 @@ export function DataTable<TData>({
               type="button"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-white px-4 text-sm font-medium text-[var(--color-foreground)] shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition hover:bg-[var(--color-muted)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)] px-4 text-sm font-medium text-[var(--color-foreground)] shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition hover:bg-[var(--color-muted)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)] disabled:cursor-not-allowed disabled:opacity-50"
             >
             Previous
           </button>
@@ -145,7 +145,7 @@ export function DataTable<TData>({
               type="button"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-white px-4 text-sm font-medium text-[var(--color-foreground)] shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition hover:bg-[var(--color-muted)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)] px-4 text-sm font-medium text-[var(--color-foreground)] shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition hover:bg-[var(--color-muted)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)] disabled:cursor-not-allowed disabled:opacity-50"
             >
             Next
           </button>

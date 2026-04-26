@@ -44,7 +44,7 @@ export function PasswordField({
           className={cn(
             "pr-11",
             error &&
-              "border-[color:var(--color-danger)] bg-rose-50/40 focus-visible:ring-[var(--color-danger)]",
+              "border-[color:var(--color-danger)] bg-[color:var(--color-surface-strong)]/88 focus-visible:ring-[var(--color-danger)]",
             className,
           )}
           {...props}

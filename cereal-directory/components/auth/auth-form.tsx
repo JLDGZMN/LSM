@@ -214,8 +214,8 @@ function FormField({
         aria-invalid={Boolean(error)}
         aria-describedby={errorId}
         className={cn(
-          error &&
-            "border-[color:var(--color-danger)] bg-rose-50/40 focus-visible:ring-[var(--color-danger)]",
+            error &&
+              "border-[color:var(--color-danger)] bg-[color:var(--color-surface-strong)]/88 focus-visible:ring-[var(--color-danger)]",
         )}
         onChange={(event) => onChange(event.target.value)}
       />
@@ -231,7 +231,7 @@ function FormField({
 function PasswordChecklist({ value }: { value: string }) {
   return (
     <div
-      className="grid gap-2 rounded-2xl border border-[color:var(--color-border)] bg-white px-4 py-3 sm:grid-cols-2"
+      className="grid gap-2 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)] px-4 py-3 sm:grid-cols-2"
       aria-live="polite"
     >
       {passwordRules.map((rule) => {
@@ -252,7 +252,7 @@ function PasswordChecklist({ value }: { value: string }) {
                 "flex size-5 shrink-0 items-center justify-center rounded-full border",
                 passed
                   ? "border-emerald-200 bg-emerald-50"
-                  : "border-[color:var(--color-border)] bg-white/80",
+                  : "border-[color:var(--color-border)] bg-[color:var(--color-surface)]/80",
               )}
               aria-hidden="true"
             >
@@ -281,7 +281,7 @@ function PasswordMatchStatus({
       className={cn(
         "flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium",
         !hasConfirmation
-          ? "border-[color:var(--color-border)] bg-white text-[var(--color-muted-foreground)]"
+          ? "border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)] text-[var(--color-muted-foreground)]"
           : matches
             ? "border-emerald-200 bg-emerald-50 text-emerald-700"
             : "border-rose-200 bg-rose-50 text-[var(--color-danger)]",
@@ -292,10 +292,10 @@ function PasswordMatchStatus({
         className={cn(
           "flex size-5 shrink-0 items-center justify-center rounded-full border",
           !hasConfirmation
-            ? "border-[color:var(--color-border)] bg-white/80"
+            ? "border-[color:var(--color-border)] bg-[color:var(--color-surface)]/80"
             : matches
-              ? "border-emerald-200 bg-white"
-              : "border-rose-200 bg-white",
+              ? "border-emerald-200 bg-[color:var(--color-surface-strong)]"
+              : "border-rose-200 bg-[color:var(--color-surface-strong)]",
         )}
         aria-hidden="true"
       >

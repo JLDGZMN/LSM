@@ -533,7 +533,7 @@ function StatCard({
             {description}
           </p>
         </div>
-        <div className="rounded-2xl border border-white/70 bg-white/80 p-3 shadow-[0_10px_24px_rgba(63,32,18,0.08)]">
+        <div className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 p-3 shadow-[0_10px_24px_rgba(63,32,18,0.08)]">
           <Icon className="size-5 text-[var(--color-primary)]" />
         </div>
       </div>
@@ -1523,7 +1523,7 @@ export function LibraryDashboard({
       <section className="sticky top-4 z-20 flex flex-col gap-6 rounded-[28px] border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/94 p-6 shadow-[0_24px_70px_rgba(63,32,18,0.1)] backdrop-blur sm:p-8 lg:min-h-[180px] lg:flex-row lg:justify-between">
         <div className="flex min-h-full flex-1 flex-col justify-between gap-5">
           <div className="flex items-start gap-3">
-            <div className="shrink-0 rounded-full border border-white/80 bg-white/90 p-1.5 shadow-[0_12px_30px_rgba(63,32,18,0.12)]">
+            <div className="shrink-0 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/92 p-1.5 shadow-[0_12px_30px_rgba(63,32,18,0.12)]">
               <Image
                 src="/pup-logo.png"
                 alt="Polytechnic University of the Philippines logo"
@@ -1624,7 +1624,7 @@ export function LibraryDashboard({
           onClick={() => setSelectedTransaction(null)}
         >
           <div
-            className="w-full max-w-2xl rounded-[28px] border border-white/70 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.18)] sm:p-8"
+            className="w-full max-w-2xl rounded-[28px] border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6 shadow-[0_24px_80px_rgba(15,23,42,0.18)] sm:p-8"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4">
@@ -1690,7 +1690,7 @@ export function LibraryDashboard({
                     : `Penalty rate: PHP ${PENALTY_PER_DAY}/day`}
                 </p>
               </article>
-              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
                   Student ID
                 </p>
@@ -1698,7 +1698,7 @@ export function LibraryDashboard({
                   {selectedTransaction.memberStudentId}
                 </p>
               </article>
-              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
                   Author
                 </p>
@@ -1706,7 +1706,7 @@ export function LibraryDashboard({
                   {selectedTransaction.bookAuthor}
                 </p>
               </article>
-              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
                   Publisher
                 </p>
@@ -1714,7 +1714,7 @@ export function LibraryDashboard({
                   {selectedTransaction.bookPublisher?.trim() || "N/A"}
                 </p>
               </article>
-              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
                   Borrowed At
                 </p>
@@ -1722,7 +1722,7 @@ export function LibraryDashboard({
                   {toReadableDateTime(selectedTransaction.borrowedAt)}
                 </p>
               </article>
-              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
                   Due Date
                 </p>
@@ -1730,7 +1730,7 @@ export function LibraryDashboard({
                   {toReadableDateTime(selectedTransaction.dueAt)}
                 </p>
               </article>
-              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
                   Returned At
                 </p>
@@ -1738,7 +1738,7 @@ export function LibraryDashboard({
                   {toReadableDateTime(selectedTransaction.returnedAt)}
                 </p>
               </article>
-              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
                   Notes
                 </p>
@@ -1746,7 +1746,7 @@ export function LibraryDashboard({
                   {selectedTransaction.notes?.trim() || "No notes provided."}
                 </p>
               </article>
-              <article className="rounded-2xl border border-[color:var(--color-border)] bg-white/80 p-4">
+              <article className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
                   Actions
                 </p>
@@ -1767,7 +1767,7 @@ export function LibraryDashboard({
       ) : null}
 
       <section className="space-y-5">
-        <div className="inline-flex flex-wrap gap-2 rounded-[26px] border border-white/75 bg-white/72 p-2 shadow-[0_14px_32px_rgba(63,32,18,0.08)] backdrop-blur">
+        <div className="inline-flex flex-wrap gap-2 rounded-[26px] border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 p-2 shadow-[0_14px_32px_rgba(63,32,18,0.08)] backdrop-blur">
           {(["books", "members", "borrowTransactions"] as TabKey[]).map((tab) => (
             <button
               key={tab}
@@ -1777,7 +1777,7 @@ export function LibraryDashboard({
                 "rounded-full border px-5 py-2.5 text-sm font-semibold transition",
                 activeTab === tab
                   ? "border-[rgba(123,17,19,0.18)] bg-[linear-gradient(135deg,#7b1113,#561214)] text-white shadow-[0_10px_24px_rgba(123,17,19,0.2)]"
-                  : "border-transparent bg-transparent text-[var(--color-foreground)] hover:border-[color:var(--color-border)] hover:bg-white/70 hover:text-[#7b1113]",
+                  : "border-transparent bg-transparent text-[var(--color-foreground)] hover:border-[color:var(--color-border)] hover:bg-[color:var(--color-surface)]/72 hover:text-[var(--color-primary)]",
               )}
             >
               {tabLabels[tab]}
@@ -1961,7 +1961,7 @@ export function LibraryDashboard({
                 <select
                   value={bookStatusFilter}
                   onChange={(event) => setBookStatusFilter(event.target.value)}
-                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
+                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 px-3 py-2 text-sm text-[var(--color-foreground)] shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
                 >
                   <option value="all">All statuses</option>
                   <option value="available">Available</option>
@@ -2161,7 +2161,7 @@ export function LibraryDashboard({
                       }))
                     }
                     required
-                    className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm text-[var(--color-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
+                    className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 px-3 py-2 text-sm text-[var(--color-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
                   >
                     <option value="">Select a member</option>
                     {members.map((member) => (
@@ -2182,7 +2182,7 @@ export function LibraryDashboard({
                           returnedAt: event.target.value === "returned" ? current.returnedAt : "",
                         }))
                       }
-                      className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm text-[var(--color-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
+                      className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 px-3 py-2 text-sm text-[var(--color-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
                     >
                       {selectedTransactionRecord?.status === "overdue" ? (
                         <option value="overdue">Overdue (automatic)</option>
@@ -2244,7 +2244,7 @@ export function LibraryDashboard({
                         }))
                       }
                       placeholder="Optional notes about the transaction"
-                      className="min-h-24 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm text-[var(--color-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-200 placeholder:text-[var(--color-muted-foreground)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
+                      className="min-h-24 w-full rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 px-3 py-2 text-sm text-[var(--color-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition duration-200 placeholder:text-[var(--color-muted-foreground)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
                     />
                   </Field>
                 </div>
@@ -2290,7 +2290,7 @@ export function LibraryDashboard({
                 <select
                   value={transactionStatusFilter}
                   onChange={(event) => setTransactionStatusFilter(event.target.value)}
-                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-white/85 px-3 py-2 text-sm shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
+                  className="flex h-11 w-full rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 px-3 py-2 text-sm text-[var(--color-foreground)] shadow-[0_6px_18px_rgba(63,32,18,0.04)] transition duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]"
                 >
                   <option value="all">All statuses</option>
                   <option value="borrowed">Borrowed</option>
