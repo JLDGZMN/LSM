@@ -10,7 +10,7 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[var(--color-canvas)] px-6 py-8 sm:px-8 lg:px-10">
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(248,243,235,0.84),rgba(243,235,223,0.92))]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(123,17,19,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(43,89,74,0.14),transparent_22%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(123,17,19,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(201,162,39,0.14),transparent_22%)]" />
 
       <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center justify-center">
         <section className="grid w-full overflow-hidden rounded-[34px] border border-white/70 bg-white/40 shadow-[0_30px_90px_rgba(63,32,18,0.16)] backdrop-blur xl:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)]">
@@ -19,7 +19,7 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
               className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: "url('/pup-land.jpeg')" }}
             />
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(76,9,12,0.82),rgba(76,9,12,0.54)_42%,rgba(17,33,28,0.42)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(76,9,12,0.84),rgba(98,16,20,0.58)_42%,rgba(43,14,15,0.46)_100%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,241,214,0.22),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.14))]" />
 
             <div className="relative flex h-full flex-col justify-between text-white">
@@ -76,7 +76,7 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
 
           <div className="relative flex items-center justify-center px-5 py-8 sm:px-8 lg:px-10 xl:min-h-[780px]">
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,251,245,0.94),rgba(247,239,228,0.92))]" />
-            <div className="absolute inset-0 xl:bg-[radial-gradient(circle_at_top_left,rgba(123,17,19,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(43,89,74,0.1),transparent_22%)]" />
+            <div className="absolute inset-0 xl:bg-[radial-gradient(circle_at_top_left,rgba(123,17,19,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(201,162,39,0.1),transparent_22%)]" />
 
             <div className="relative w-full max-w-xl space-y-5">
               <div className="space-y-3 text-center xl:hidden">

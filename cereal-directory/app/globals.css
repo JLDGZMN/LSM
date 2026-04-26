@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f0e6;
+  --background: #f7f1e8;
   --foreground: #1f2937;
-  --color-canvas: #f3ebdf;
-  --color-muted: #efe4d4;
-  --color-muted-foreground: #6f6a63;
-  --color-border: #dbcab4;
-  --color-primary: #2b594a;
-  --color-primary-strong: #1f4438;
-  --color-primary-soft: #dbe9e3;
-  --color-ring: rgba(43, 89, 74, 0.28);
-  --color-danger: #b94f4f;
-  --color-warning-bg: #fff6e7;
-  --color-warning-border: #ead8b0;
-  --color-warning-foreground: #7a5b1f;
+  --color-canvas: #f3eadf;
+  --color-muted: #f0e4d8;
+  --color-muted-foreground: #6f645f;
+  --color-border: #dcc8b5;
+  --color-primary: #7b1113;
+  --color-primary-strong: #5c0b0d;
+  --color-primary-soft: #f2dcdd;
+  --color-ring: rgba(123, 17, 19, 0.24);
+  --color-danger: #a63a3a;
+  --color-warning-bg: #fff4df;
+  --color-warning-border: #e5c98f;
+  --color-warning-foreground: #7b5b18;
 }
 
 @theme inline {
@@ -37,7 +37,7 @@ html {
 
 body {
   background:
-    linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(246, 240, 230, 0.96)),
+    linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(247, 241, 232, 0.96)),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
@@ -55,5 +55,5 @@ button {
 }
 
 ::selection {
-  background: rgba(43, 89, 74, 0.16);
+  background: rgba(123, 17, 19, 0.18);
 }
