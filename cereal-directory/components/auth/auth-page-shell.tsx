@@ -48,23 +48,23 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(88,10,15,0.72),rgba(99,12,18,0.9)_45%,rgba(70,8,12,0.96))]" />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(0,0,0,0.08))]" />
 
-                <footer className="relative flex min-h-[118px] w-full items-end px-8 pb-2 pt-6">
-                  <div className="flex w-full items-end gap-4">
-                    <div className="shrink-0 rounded-full border border-white/24 bg-white/6 p-1 shadow-[0_10px_20px_rgba(25,8,8,0.16)] backdrop-blur-sm">
+                <footer className="relative flex min-h-[118px] w-full items-center px-8 py-4">
+                  <div className="flex w-full items-center gap-4">
+                    <div className="shrink-0 self-center rounded-full border border-white/24 bg-white/6 p-1 shadow-[0_10px_20px_rgba(25,8,8,0.16)] backdrop-blur-sm">
                       <img
                         src="/pup-logo.png"
                         alt="Polytechnic University of the Philippines logo"
                         className="h-12 w-12 rounded-full object-cover"
                       />
                     </div>
-                    <div className="min-w-0 text-left">
+                    <div className="min-w-0 flex-1 text-left">
                       <p className="font-serif text-[1.5rem] italic leading-none tracking-[0.04em] text-white/95">
                         Mula Sa 'Yo, Para sa Bayan
                       </p>
-                      <p className="mt-2 text-[11px] leading-4 text-white/78">
+                      <p className="mt-2 text-[11px] leading-4 text-justify text-white/78">
                         A. Mabini Campus, Anonas Street, Sta. Mesa, Manila, Philippines 1016
                       </p>
-                      <p className="mt-0.5 text-[11px] leading-4 text-white/78">
+                      <p className="mt-0.5 text-[11px] leading-4 text-justify text-white/78">
                         Phone: (+63 2) 5335-1PUP (5335-1787) or 5335-1777
                       </p>
                     </div>
