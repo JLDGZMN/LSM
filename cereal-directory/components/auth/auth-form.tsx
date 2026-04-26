@@ -587,6 +587,26 @@ export function AuthForm({ initialMode = "signin" }: AuthFormProps) {
                 : "Create Account"}
           </Button>
 
+          <p className="text-center text-xs leading-5 text-[var(--color-muted-foreground)]">
+            {mode === "signin"
+              ? "By continuing, you agree to the library's terms and privacy practices for student information."
+              : "By creating an account, you agree to the library's terms and acknowledge how student information is handled."}{" "}
+            <Link
+              href="/privacy"
+              className="font-semibold text-[var(--color-primary)] transition hover:text-[var(--color-primary-strong)]"
+            >
+              Privacy Policy
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/terms"
+              className="font-semibold text-[var(--color-primary)] transition hover:text-[var(--color-primary-strong)]"
+            >
+              Terms
+            </Link>
+            .
+          </p>
+
           <p className="text-center text-sm text-[var(--color-muted-foreground)]">
             {mode === "signin" ? "New to the system?" : "Already have an account?"}{" "}
             <Link

@@ -68,10 +68,10 @@ export function DataTable<TData>({
   const currentPage = table.getState().pagination.pageIndex + 1;
 
   return (
-    <div className="overflow-hidden rounded-[30px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,249,241,0.92))] shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
+    <div className="overflow-hidden rounded-[30px] border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/96 shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
       <div className="overflow-x-auto">
         <table className="min-w-full border-collapse text-left text-sm">
-          <thead className="sticky top-0 z-10 bg-[linear-gradient(180deg,rgba(247,240,230,0.98),rgba(241,231,217,0.92))] backdrop-blur">
+          <thead className="sticky top-0 z-10 bg-[color:var(--color-surface-muted)]/96 backdrop-blur">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -106,7 +106,7 @@ export function DataTable<TData>({
               table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-t border-[color:var(--color-border)]/70 bg-white/95 align-top transition hover:bg-[rgba(123,17,19,0.035)]"
+                  className="border-t border-[color:var(--color-border)]/70 bg-[color:var(--color-surface-strong)]/95 align-top transition hover:bg-[rgba(123,17,19,0.06)]"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-4 text-[var(--color-foreground)]">
@@ -128,7 +128,7 @@ export function DataTable<TData>({
           </tbody>
         </table>
       </div>
-      <div className="flex flex-col gap-3 border-t border-[color:var(--color-border)]/70 bg-[rgba(247,240,230,0.75)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[color:var(--color-border)]/70 bg-[color:var(--color-surface-muted)]/82 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-[var(--color-muted-foreground)]">
           Page {currentPage} of {totalPages}
         </p>

@@ -9,7 +9,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   default:
     "bg-[var(--color-primary)] text-white shadow-sm hover:bg-[var(--color-primary-strong)]",
   outline:
-    "border border-[color:var(--color-border)] bg-white/80 text-[var(--color-foreground)] hover:bg-[var(--color-muted)]",
+    "border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/88 text-[var(--color-foreground)] hover:bg-[var(--color-muted)]",
   ghost: "text-[var(--color-foreground)] hover:bg-[var(--color-muted)]",
 };
 

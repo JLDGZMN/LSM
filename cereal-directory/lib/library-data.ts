@@ -75,6 +75,25 @@ export type DashboardSnapshot = {
   borrowTransactions: BorrowTransactionRow[];
 };
 
+export type NotificationTone = "info" | "warning" | "danger";
+
+export type NotificationCategory = "inventory" | "circulation";
+
+export type NotificationItem = {
+  id: string;
+  tone: NotificationTone;
+  category: NotificationCategory;
+  title: string;
+  message: string;
+  href: string;
+  createdAt: string;
+};
+
+export type NotificationSnapshot = {
+  total: number;
+  items: NotificationItem[];
+};
+
 export type BookInput = {
   categoryId: number | null;
   title: string;
@@ -601,6 +620,60 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
     books,
     members,
     borrowTransactions,
+  };
+}
+
+export async function getNotificationSnapshot(): Promise<NotificationSnapshot> {
+  const [books, borrowTransactions] = await Promise.all([
+    listBooks(),
+    listBorrowTransactions(),
+  ]);
+
+  const lowStockNotifications: NotificationItem[] = books
+    .filter((book) => book.status === "low_stock")
+    .map((book) => ({
+      id: `low-stock-${book.id}`,
+      tone: "warning",
+      category: "inventory",
+      title: `Low stock: ${book.title}`,
+      message: `${book.availableCopies} of ${book.totalCopies} copies remain available on shelf ${book.shelfLocation ?? "N/A"}.`,
+      href: "/dashboard",
+      createdAt: book.createdAt,
+    }));
+
+  const unavailableNotifications: NotificationItem[] = books
+    .filter((book) => book.status === "unavailable")
+    .map((book) => ({
+      id: `unavailable-${book.id}`,
+      tone: "danger",
+      category: "inventory",
+      title: `Unavailable: ${book.title}`,
+      message: "No copies are currently available. Review returns or update inventory as needed.",
+      href: "/dashboard",
+      createdAt: book.createdAt,
+    }));
+
+  const overdueNotifications: NotificationItem[] = borrowTransactions
+    .filter((transaction) => transaction.status === "overdue")
+    .map((transaction) => ({
+      id: `overdue-${transaction.id}`,
+      tone: "danger",
+      category: "circulation",
+      title: `Overdue borrowing: ${transaction.bookTitle}`,
+      message: `${transaction.memberName} (${transaction.memberStudentId}) has not returned this item due on ${transaction.dueAt}.`,
+      href: "/dashboard",
+      createdAt: transaction.createdAt,
+    }));
+
+  const items = [
+    ...overdueNotifications,
+    ...unavailableNotifications,
+    ...lowStockNotifications,
+  ].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+
+  return {
+    total: items.length,
+    items,
   };
 }
 

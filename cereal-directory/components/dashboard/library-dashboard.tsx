@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   ArrowRightLeft,
   Bell,
@@ -22,6 +23,7 @@ import { toast } from "sonner";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DataTable } from "@/components/dashboard/data-table";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,6 +78,7 @@ type LibraryDashboardProps = {
   initialBooks: BookRow[];
   initialMembers: MemberRow[];
   initialBorrowTransactions: BorrowTransactionRow[];
+  notificationCount: number;
   userName: string;
   userEmail: string;
 };
@@ -508,7 +511,7 @@ function StatCard({
 }) {
   return (
     <article
-      className="group relative overflow-hidden rounded-[28px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,251,245,0.92))] p-6 shadow-[0_18px_60px_rgba(63,32,18,0.09)]"
+      className="group relative overflow-hidden rounded-[28px] border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/96 p-6 shadow-[0_18px_60px_rgba(63,32,18,0.09)]"
       style={{ "--card-accent": accentColor } as React.CSSProperties}
     >
       <div className="absolute inset-x-0 top-0 h-1.5 bg-[var(--card-accent)]" />
@@ -669,6 +672,7 @@ export function LibraryDashboard({
   initialBooks,
   initialMembers,
   initialBorrowTransactions,
+  notificationCount,
   userName,
   userEmail,
 }: LibraryDashboardProps) {
@@ -1516,7 +1520,7 @@ export function LibraryDashboard({
   ];
   return (
     <div className="space-y-8">
-      <section className="flex flex-col gap-6 rounded-[28px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(255,249,241,0.88))] p-6 shadow-[0_24px_70px_rgba(63,32,18,0.1)] sm:p-8 lg:min-h-[180px] lg:flex-row lg:justify-between">
+      <section className="sticky top-4 z-20 flex flex-col gap-6 rounded-[28px] border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/94 p-6 shadow-[0_24px_70px_rgba(63,32,18,0.1)] backdrop-blur sm:p-8 lg:min-h-[180px] lg:flex-row lg:justify-between">
         <div className="flex min-h-full flex-1 flex-col justify-between gap-5">
           <div className="flex items-start gap-3">
             <div className="shrink-0 rounded-full border border-white/80 bg-white/90 p-1.5 shadow-[0_12px_30px_rgba(63,32,18,0.12)]">
@@ -1550,20 +1554,26 @@ export function LibraryDashboard({
         </div>
 
         <div className="flex items-start justify-end">
-          <div className="flex flex-wrap items-center justify-end gap-3 rounded-full border border-white/80 bg-white/78 px-3 py-2 shadow-[0_12px_30px_rgba(63,32,18,0.07)]">
+          <div className="flex flex-wrap items-center justify-end gap-3 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/86 px-3 py-2 shadow-[0_12px_30px_rgba(63,32,18,0.07)] backdrop-blur">
             <div className="text-right">
               <p className="text-sm font-semibold text-[var(--color-foreground)]">{userName}</p>
               <p className="text-xs text-[var(--color-muted-foreground)]">{userEmail}</p>
             </div>
-            <div className="flex items-center gap-2 rounded-full border border-[color:var(--color-border)] bg-white/92 p-1">
-              <button
-                type="button"
+            <div className="flex items-center gap-2 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface-strong)]/92 p-1">
+              <ThemeToggle />
+              <Link
+                href="/notifications"
                 aria-label="Notifications"
                 title="Notifications"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-primary-soft)]/70 text-[var(--color-primary)] shadow-sm transition hover:bg-[var(--color-primary-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-primary-soft)]/70 text-[var(--color-primary)] shadow-sm transition hover:bg-[var(--color-primary-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-surface)]"
               >
                 <Bell className="size-4" />
-              </button>
+                {notificationCount > 0 ? (
+                  <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-primary)] px-1.5 text-[10px] font-bold text-white">
+                    {notificationCount > 9 ? "9+" : notificationCount}
+                  </span>
+                ) : null}
+              </Link>
               <SignOutButton className="h-9 rounded-full px-4 py-2 text-xs font-semibold shadow-none" />
             </div>
           </div>
@@ -1777,7 +1787,7 @@ export function LibraryDashboard({
 
         {activeTab === "books" ? (
           <div className="space-y-5">
-            <section className="rounded-[30px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(255,249,241,0.9))] p-6 shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
+            <section className="rounded-[30px] border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/95 p-6 shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-semibold text-[var(--color-foreground)]">
@@ -1937,7 +1947,7 @@ export function LibraryDashboard({
               </form>
             </section>
 
-            <section className="space-y-4 rounded-[28px] border border-white/70 bg-white/60 p-4 shadow-[0_16px_42px_rgba(63,32,18,0.07)] backdrop-blur sm:p-5">
+            <section className="space-y-4 rounded-[28px] border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/78 p-4 shadow-[0_16px_42px_rgba(63,32,18,0.07)] backdrop-blur sm:p-5">
               <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-[var(--color-muted-foreground)]" />
@@ -1971,7 +1981,7 @@ export function LibraryDashboard({
 
         {activeTab === "members" ? (
           <div className="space-y-5">
-            <section className="rounded-[30px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(255,249,241,0.9))] p-6 shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
+            <section className="rounded-[30px] border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/95 p-6 shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-semibold text-[var(--color-foreground)]">
@@ -2077,7 +2087,7 @@ export function LibraryDashboard({
               </form>
             </section>
 
-            <section className="space-y-4 rounded-[28px] border border-white/70 bg-white/60 p-4 shadow-[0_16px_42px_rgba(63,32,18,0.07)] backdrop-blur sm:p-5">
+            <section className="space-y-4 rounded-[28px] border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/78 p-4 shadow-[0_16px_42px_rgba(63,32,18,0.07)] backdrop-blur sm:p-5">
               <div className="grid gap-4">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-[var(--color-muted-foreground)]" />
@@ -2101,7 +2111,7 @@ export function LibraryDashboard({
 
         {activeTab === "borrowTransactions" ? (
           <div className="space-y-5">
-            <section className="rounded-[30px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(255,249,241,0.9))] p-6 shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
+            <section className="rounded-[30px] border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/95 p-6 shadow-[0_20px_56px_rgba(63,32,18,0.09)]">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-semibold text-[var(--color-foreground)]">
@@ -2266,7 +2276,7 @@ export function LibraryDashboard({
               </form>
             </section>
 
-            <section className="space-y-4 rounded-[28px] border border-white/70 bg-white/60 p-4 shadow-[0_16px_42px_rgba(63,32,18,0.07)] backdrop-blur sm:p-5">
+            <section className="space-y-4 rounded-[28px] border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/78 p-4 shadow-[0_16px_42px_rgba(63,32,18,0.07)] backdrop-blur sm:p-5">
               <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-[var(--color-muted-foreground)]" />

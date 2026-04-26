@@ -1,4 +1,7 @@
+import Image from "next/image";
+
 import { AuthForm } from "@/components/auth/auth-form";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 type AuthMode = "signin" | "signup";
 
@@ -12,8 +15,12 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(248,243,235,0.84),rgba(243,235,223,0.92))]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(123,17,19,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(201,162,39,0.14),transparent_22%)]" />
 
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl justify-end">
+        <ThemeToggle className="border-white/50 bg-[color:var(--color-surface)]/72 backdrop-blur" />
+      </div>
+
       <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center justify-center">
-        <section className="grid w-full overflow-hidden rounded-[34px] border border-white/70 bg-white/40 shadow-[0_30px_90px_rgba(63,32,18,0.16)] backdrop-blur xl:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)]">
+        <section className="grid w-full overflow-hidden rounded-[34px] border border-white/70 bg-[color:var(--color-surface)]/40 shadow-[0_30px_90px_rgba(63,32,18,0.16)] backdrop-blur xl:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)]">
           <div className="relative hidden min-h-[780px] overflow-hidden xl:block">
             <div
               className="absolute inset-0 bg-cover bg-center"
@@ -51,15 +58,17 @@ export function AuthPageShell({ mode }: AuthPageShellProps) {
                 <footer className="relative flex min-h-[118px] w-full items-center px-8 py-4">
                   <div className="flex w-full items-center gap-4">
                     <div className="shrink-0 self-center rounded-full border border-white/24 bg-white/6 p-1 shadow-[0_10px_20px_rgba(25,8,8,0.16)] backdrop-blur-sm">
-                      <img
+                      <Image
                         src="/pup-logo.png"
                         alt="Polytechnic University of the Philippines logo"
+                        width={48}
+                        height={48}
                         className="h-12 w-12 rounded-full object-cover"
                       />
                     </div>
                     <div className="min-w-0 flex-1 text-left">
                       <p className="font-serif text-[1.5rem] italic leading-none tracking-[0.04em] text-white/95">
-                        Mula Sa 'Yo, Para sa Bayan
+                        Mula Sa &#39;Yo, Para sa Bayan
                       </p>
                       <p className="mt-2 text-[11px] leading-4 text-justify text-white/78">
                         A. Mabini Campus, Anonas Street, Sta. Mesa, Manila, Philippines 1016
